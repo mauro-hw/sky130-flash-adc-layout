@@ -4,11 +4,12 @@ The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, from
 schematic to the post-layout simulation: DRC, LVS, parasitic extraction and a comparison of
 the pre-layout and post-layout performance in three process corners.
 
-**Status:** work in progress. The pre-layout netlist is ready; the layout comes next.
+**Status:** work in progress. The first version of the circuit fails its offset requirement
+once the PDK's mismatch is included (see below); it is being resized before the layout.
 
-Layout by **Mauro Rodriguez Blasco**. The circuit was designed with
-[VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
-and simulates analog circuits.
+Layout by **Mauro Rodriguez Blasco**. The first version of the circuit was written by Claude
+(Anthropic) and simulated with [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent
+by the same author that designs and simulates analog circuits.
 
 ## The circuit
 
@@ -39,6 +40,16 @@ The bias resistor as the PDK device (`sky130_fd_pr__res_xhigh_po_0p35`, 0.35 × 
 | ff, −40 °C, 1.95 V | 1.776 µA | 1.616 µA |
 
 The resistor's negative temperature coefficient narrows the spread across corners.
+
+### Offset with mismatch
+
+Nominally (tt, 25 °C) the offset is −0.74 mV. With the PDK's random mismatch (the `tt_mm`
+models, 30 Monte Carlo runs, DC sweep of `inp` around `inn` = 0.45 V) it has a standard
+deviation of **22.8 mV**, and 23 of the 30 runs fall outside ±8.16 mV. The input pair
+(4 × 0.5 µm) and the mirror (1 × 1 µm) are too small: random mismatch scales as
+1/√(W·L), and no layout technique removes it. Common-centroid placement cancels gradients
+across the die, not this. Meeting ±8.16 mV at 3σ would take about 70 times their area,
+unless the ADC's error budget gives the offset more room.
 
 ## Tools
 
