@@ -1,0 +1,23 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* Continuous-time comparator, one of the seven of a 3-bit flash ADC: out goes to vdd when
+* inp > inn. A PMOS low-Vt input pair (it works with inputs down to 0.1 V), an NMOS mirror
+* load, a common-source second stage and an inverter for a logic level. Its bias, about
+* 0.9 uA per branch, comes from RB and the diode-connected XMB.
+*
+* Pre-layout reference for LVS: every device is a SKY130 device. RB is a high-resistivity
+* poly resistor, 0.35 um wide, 2 kohm/sq: 227.5 um long for 1.3 Mohm.
+.subckt comparator inp inn out vdd vss
+XMB nb nb vdd vdd sky130_fd_pr__pfet_01v8 w=1 l=2
+XRB nb vss vss sky130_fd_pr__res_xhigh_po_0p35 l=227.5
+XMT tail nb vdd vdd sky130_fd_pr__pfet_01v8 w=1 l=2
+XM1 d1 inp tail vdd sky130_fd_pr__pfet_01v8_lvt w=4 l=0.5
+XM2 d2 inn tail vdd sky130_fd_pr__pfet_01v8_lvt w=4 l=0.5
+XM3 d1 d1 vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=1
+XM4 d2 d1 vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=1
+XM5 o1 d2 vss vss sky130_fd_pr__nfet_01v8_lvt w=2 l=1
+XM6 o1 nb vdd vdd sky130_fd_pr__pfet_01v8 w=1 l=2
+XM7 out o1 vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=0.15
+XM8 out o1 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=0.15
+.ends comparator
