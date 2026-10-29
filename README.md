@@ -115,9 +115,9 @@ python3 scripts/sim.py build/comparator_pex.spice    # the same table as above, 
 | PDK | sky130A, open_pdks `c6d73a35f524070e85faff4a6a9eef49553ebc2b`, installed with volare |
 
 Three traps of this setup:
-- Fedora 44's Magic runs on Tcl 9. This open_pdks reads a variable of its device generators
-  in a way that Tcl 9 no longer resolves, and every generated device fails. The fix is one
-  line in `mag/.magicrc`.
+- Fedora 44's Magic runs on Tcl 9. Both this open_pdks's device generators and Magic's own
+  device dialog name variables in a way that Tcl 9 no longer resolves, so every generated
+  device fails. `mag/.magicrc` fixes both at startup.
 - Fedora's `netgen` package is version 1.3.7, from 2005, with no `lvs` command. Netgen 1.5 is
   built from [its source](https://github.com/RTimothyEdwards/netgen) into `~/.local`.
 - GCC 16 compiles C23 by default, and one of Netgen's files does not build under it. The fix

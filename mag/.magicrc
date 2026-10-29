@@ -10,3 +10,23 @@ source $env(PDK_ROOT)/sky130A/libs.tech/magic/sky130A.magicrc
 # the namespace sky130, which Tcl 9 resolves as ::sky130::sky130::ruleset (Tcl 8 fell back to
 # ::sky130::ruleset). Without this link every generated device fails.
 namespace eval ::sky130::sky130 {namespace upvar ::sky130 ruleset ruleset}
+
+# The same in Magic's own toolkit.tcl: the parameter dialog of a device (Devices 1 → nmos)
+# sets magic::${pname}_val from inside the namespace magic, which Tcl 9 reads as
+# ::magic::magic::w_val ("can't set magic::w_val: parent namespace doesn't exist"), while its
+# fields use ::magic::w_val. Its procedures are redefined with the absolute name, which means
+# the same in Tcl 8 and 9; a patched procedure no longer matches, so running it twice is safe.
+proc ::tcl9_toolkit_fix {} {
+    foreach p [info procs ::magic::*] {
+        set body [info body $p]
+        set new [regsub -all {([^:])magic::(\$\{pname\}_val)} $body {\1::magic::\2}]
+        if {$new eq $body} continue
+        set params {}
+        foreach a [info args $p] {
+            if {[info default $p $a d]} {lappend params [list $a $d]} else {lappend params $a}
+        }
+        proc $p $params $new
+    }
+}
+::tcl9_toolkit_fix
+after idle ::tcl9_toolkit_fix
