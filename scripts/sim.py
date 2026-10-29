@@ -45,6 +45,22 @@ def run(text: str) -> str:
     return done.stdout + done.stderr
 
 
+def ports(netlist: Path) -> list[str]:
+    """The pins of subcircuit comparator, in its order: an extracted netlist may have them in
+    another order than the schematic's."""
+    text = re.sub(r"\n\+", " ", netlist.read_text(errors="replace"))
+    m = re.search(r"^\.subckt\s+comparator\s+(.*)$", text, re.M | re.I)
+    pins = [p.lower() for p in m.group(1).split() if "=" not in p] if m else []
+    if sorted(pins) != sorted(["inp", "inn", "out", "vdd", "vss"]):
+        sys.exit(f"{netlist.name}: no subcircuit comparator with pins inp inn out vdd vss "
+                 f"(found {pins or 'none'})")
+    return pins
+
+
+def x(name: str, pins: list[str], nodes: dict[str, str]) -> str:
+    return f"{name} {' '.join(nodes[p] for p in pins)} comparator"
+
+
 def head(netlist: Path, section: str, temp: float, vdd: float, seed: int | None) -> list[str]:
     return [f"* comparator, {section}", f'.lib "{lib()}" {section}', f".temp {temp}",
             f".param vdd={vdd}", f'.include "{netlist}"'] \
@@ -55,11 +71,11 @@ def head(netlist: Path, section: str, temp: float, vdd: float, seed: int | None)
 def offsets(netlist: Path, process: str, temp: float, vdd: float, copies: int,
             seed: int) -> list[float]:
     """The offset of each copy, in volts, with the mismatch models."""
-    lines = head(netlist, f"{process}_mm", temp, vdd, seed)
+    pins, lines = ports(netlist), head(netlist, f"{process}_mm", temp, vdd, seed)
     for k in range(copies):
         t = k % 7
         lines += [f"VT{k} tap{k} 0 {TAPS[t]}", f"E{k} in{k} tap{k} vd 0 1",
-                  f"X{k} in{k} tap{k} o{k} vdd 0 comparator"]
+                  x(f"X{k}", pins, dict(inp=f"in{k}", inn=f"tap{k}", out=f"o{k}", vdd="vdd", vss="0"))]
     lines += [".dc VDIFF -0.06 0.06 0.5m"]
     lines += [f".meas dc off{k} when v(o{k})={{vdd/2}} rise=1" for k in range(copies)]
     out = run("\n".join(lines + [".end"]) + "\n")
@@ -72,14 +88,14 @@ def offsets(netlist: Path, process: str, temp: float, vdd: float, copies: int,
 def nominal(netlist: Path, process: str, temp: float, vdd: float) -> dict:
     """Without mismatch: the offset at each tap; the current and output levels 20 mV either
     side of the top and bottom taps."""
-    lines = head(netlist, process, temp, vdd, None)
+    pins, lines = ports(netlist), head(netlist, process, temp, vdd, None)
     for t, tap in enumerate(TAPS):
         lines += [f"VT{t} tap{t} 0 {tap}", f"E{t} in{t} tap{t} vd 0 1",
-                  f"X{t} in{t} tap{t} o{t} vdd 0 comparator"]
+                  x(f"X{t}", pins, dict(inp=f"in{t}", inn=f"tap{t}", out=f"o{t}", vdd="vdd", vss="0"))]
     sides = [(s, t, d) for s, (t, d) in enumerate([(0, 0.02), (0, -0.02), (6, 0.02), (6, -0.02)])]
     for s, t, d in sides:
         lines += [f"VS{s} vs{s} 0 {{vdd}}", f"VQ{s} q{s} 0 {TAPS[t] + d}",
-                  f"XS{s} q{s} tap{t} s{s} vs{s} 0 comparator"]
+                  x(f"XS{s}", pins, dict(inp=f"q{s}", inn=f"tap{t}", out=f"s{s}", vdd=f"vs{s}", vss="0"))]
     lines += [".dc VDIFF -0.06 0.06 0.5m"]
     lines += [f".meas dc off{t} when v(o{t})={{vdd/2}} rise=1" for t in range(7)]
     lines += [".control", "run", "op"] + [f"print -i(VS{s}) v(s{s})" for s, _, _ in sides] \

@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Mauro Rodriguez Blasco
+#
+# Magic reads this file when it starts in this folder: SKY130 (sky130A) from PDK_ROOT,
+# ~/.volare by default, with its device generators.
+if {![info exists env(PDK_ROOT)]} {set env(PDK_ROOT) $env(HOME)/.volare}
+source $env(PDK_ROOT)/sky130A/libs.tech/magic/sky130A.magicrc
+
+# Tcl 9 (Magic in Fedora 44): the PDK's device generators read $sky130::ruleset from inside
+# the namespace sky130, which Tcl 9 resolves as ::sky130::sky130::ruleset (Tcl 8 fell back to
+# ::sky130::ruleset). Without this link every generated device fails.
+namespace eval ::sky130::sky130 {namespace upvar ::sky130 ruleset ruleset}

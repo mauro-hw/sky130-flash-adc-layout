@@ -9,3 +9,6 @@
 
 # Python
 __pycache__/
+
+# Built by scripts/flow.py
+build/

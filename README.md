@@ -95,15 +95,30 @@ missing codes, a DNL of 0.19 LSB and an INL of 0.15 LSB in every corner.
   - inp and inn: routed symmetrically.
   - VBIAS (about 1 MΩ): away from `out`, which swings rail to rail.
 
-## Tools
+## The flow
+
+The layout cells live in `mag/`; start Magic there (`cd mag && magic`) and it reads
+[mag/.magicrc](mag/.magicrc). The checks run without a window:
+
+```bash
+python3 scripts/flow.py selftest          # the tools, on a transistor Magic generates
+python3 scripts/flow.py all comparator    # DRC, LVS against netlist/comparator.spice, PEX, GDS
+python3 scripts/sim.py build/comparator_pex.spice    # the same table as above, after layout
+```
 
 | Step | Tool |
 |---|---|
 | Schematic | xschem 3.1.0 |
 | Simulation | ngspice 47 |
-| Layout, DRC and parasitic extraction | Magic |
-| LVS | Netgen |
+| Layout, DRC and parasitic extraction | Magic 8.3.685 (Fedora 44, on Tcl 9) |
+| LVS | Netgen 1.5.326, built from source |
 | PDK | sky130A, open_pdks `c6d73a35f524070e85faff4a6a9eef49553ebc2b`, installed with volare |
+
+Two traps of this setup:
+- Fedora 44's Magic runs on Tcl 9. This open_pdks reads a variable of its device generators
+  in a way that Tcl 9 no longer resolves, and every generated device fails. The fix is one
+  line in `mag/.magicrc`.
+- Fedora's `netgen` package is version 1.3.7, from 2005, with no `lvs` command.
 
 ## License
 
