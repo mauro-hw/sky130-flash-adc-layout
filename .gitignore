@@ -6,3 +6,6 @@
 # Editors and the operating system
 *~
 .DS_Store
+
+# Python
+__pycache__/

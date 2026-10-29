@@ -4,52 +4,96 @@ The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, from
 schematic to the post-layout simulation: DRC, LVS, parasitic extraction and a comparison of
 the pre-layout and post-layout performance in three process corners.
 
-**Status:** work in progress. The first version of the circuit fails its offset requirement
-once the PDK's mismatch is included (see below); it is being resized before the layout.
+**Status:** the circuit is designed and verified before layout; the layout comes next.
 
-Layout by **Mauro Rodriguez Blasco**. The first version of the circuit was written by Claude
-(Anthropic) and simulated with [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent
-by the same author that designs and simulates analog circuits.
+Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
+[VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
+and simulates analog circuits, with Claude Code (Anthropic) as its agent, and reviewed with
+Claude.
 
 ## The circuit
 
-One of the seven comparators of a 3-bit flash ADC (input range 0 to 0.9 V, 1.8 V supply):
-the output goes high when `inp` is above `inn`, its tap of the reference ladder.
+One of the seven comparators of a 3-bit flash ADC: 1.8 V supply, input range 0 to 0.9 V, so
+`inn` sits at one of the taps 0.1125 to 0.7875 V. The output goes high when `inp` is above
+`inn`.
 
-- A PMOS low-Vt input pair, so that it works with inputs down to 0.1 V, with an NMOS
-  current-mirror load.
-- A common-source second stage and an inverter for a full logic level.
-- About 0.9 µA per branch, set by a 1.3 MΩ high-resistivity poly resistor and a
-  diode-connected PMOS.
+- **First stage:** a low-Vt PMOS input pair, so that it works from the lowest tap up, with
+  an NMOS current-mirror load.
+- **Second stage:** an NMOS common-source stage that gives a full logic level.
+- **Bias:** about 1 µA from four equal high-resistivity poly segments (1.26 MΩ) and a diode
+  PMOS. The tail carries 2 µA and the second stage 1 µA.
 
-Pre-layout netlist: [netlist/comparator.spice](netlist/comparator.spice).
+Pre-layout netlist, the reference for LVS: [netlist/comparator.spice](netlist/comparator.spice).
 
-Requirements, from the ADC's error budget, in every corner: offset within ±8.16 mV,
-hysteresis at most 34.5 mV and supply current at most 3.29 µA.
+| Device | Role | Type | Unit W × L (µm) | Units | Gate area |
+|---|---|---|---|---|---|
+| XM1, XM2 | input pair | pfet_01v8_lvt | 2 × 2 | 4 each | 16 µm² each |
+| XM3, XM4 | mirror load | nfet_01v8_lvt | 1 × 4 | 2 each | 8 µm² each |
+| XM6 | second stage | nfet_01v8_lvt | 1 × 4 | 2 | 8 µm² |
+| XM8, XM5, XM7 | bias diode, tail, second-stage load | pfet_01v8_lvt | 2 × 1 | 2, 4, 2 | 4, 8, 4 µm² |
+| XR1–XR4 | bias resistor | res_xhigh_po_0p35 | 0.35 × 55 | 4 in series | 1.26 MΩ |
 
-## Pre-layout
+Every transistor is a unit repeated `m` times with `mult` equal to `m`, so that the PDK's
+mismatch averages over the fingers as it would on silicon. All the transistors are low-Vt.
 
-The bias resistor as the PDK device (`sky130_fd_pr__res_xhigh_po_0p35`, 0.35 × 227.5 µm at
-2 kΩ/□) instead of an ideal 1.3 MΩ. Supply current of one comparator, DC, both inputs at
-0.45 V:
+## Requirements
 
-| Corner | Ideal resistor | PDK resistor |
-|---|---|---|
-| tt, 25 °C, 1.80 V | 1.564 µA | 1.560 µA |
-| ss, 100 °C, 1.60 V | 1.284 µA | 1.392 µA |
-| ff, −40 °C, 1.95 V | 1.776 µA | 1.616 µA |
+They come from the ADC. With random comparator offsets, a Monte Carlo of the ADC (no missing
+codes; DNL, INL, offset and gain error within ±0.5 LSB) shows that 99.9 % of ADCs work when
+the comparators' offset has a standard deviation of about 10 mV or less. The comparator aims
+at **σ ≤ 8 mV** in every corner, which leaves room for the ladder and the reference. It must
+also work over the whole input range at 1.60 V.
 
-The resistor's negative temperature coefficient narrows the spread across corners.
+## Pre-layout results
 
-### Offset with mismatch
+`python3 scripts/sim.py`: 112 copies with the PDK's mismatch models, 16 at each tap, and the
+nominal circuit, in the three sign-off corners. The same script will run the extracted
+netlist.
 
-Nominally (tt, 25 °C) the offset is −0.74 mV. With the PDK's random mismatch (the `tt_mm`
-models, 30 Monte Carlo runs, DC sweep of `inp` around `inn` = 0.45 V) it has a standard
-deviation of **22.8 mV**, and 23 of the 30 runs fall outside ±8.16 mV. The input pair
-(4 × 0.5 µm) and the mirror (1 × 1 µm) are too small: random mismatch scales as
-1/√(W·L), and no layout technique removes it. Common-centroid placement cancels gradients
-across the die, not this. Meeting ±8.16 mV at 3σ would take about 70 times their area,
-unless the ADC's error budget gives the offset more room.
+| | tt, 25 °C, 1.80 V | ss, 100 °C, 1.60 V | ff, −40 °C, 1.95 V |
+|---|---|---|---|
+| Offset σ, with mismatch | 5.18 mV | 5.16 mV | 5.18 mV |
+| Offset mean; min / max | −0.76; −11.1 / +14.4 mV | −0.79; −11.1 / +14.3 mV | −0.75; −11.0 / +14.5 mV |
+| Offset without mismatch, worst tap | −0.13 mV | −0.19 mV | +0.10 mV |
+| Supply current, largest | 4.55 µA | 4.31 µA | 4.63 µA |
+| Output high / low | 1.800 V / 39 mV | 1.600 V / 75 mV | 1.950 V / 21 mV |
+| Tail at the top tap, V<sub>SD</sub> / current | 0.41 V / 2.01 µA | 0.28 V / 1.87 µA | 0.52 V / 2.03 µA |
+
+In VibeSPICE, the whole ADC with seven of these comparators and one mismatch sample has no
+missing codes, a DNL of 0.19 LSB and an INL of 0.15 LSB in every corner.
+
+## How the design got here
+
+1. **A first version met its offset nominally but not with mismatch.** Its input pair
+   (4 × 0.5 µm) and mirror (1 × 1 µm) gave an offset with a 20 mV standard deviation. No
+   layout technique fixes random mismatch: only device area does (Pelgrom).
+2. **The requirement was set from the ADC's yield**, not from a fixed offset. The ADC's
+   gain-error limit was relaxed to ±0.5 LSB, like the others; at ±2 % it alone would have
+   asked for σ ≤ 3.5 mV.
+3. **VibeSPICE redesigned the comparator** with a regular-Vt input pair, at a reported
+   σ = 5.7 mV.
+4. **A review found two problems:**
+   - **Overstated mismatch.** The transistors used `m=` without `mult=`. SKY130's mismatch
+     scales with 1/√(W·L·mult), so the m fingers varied as one. With `mult=` equal to `m=`,
+     σ was 3.6 mV.
+   - **No headroom at the top tap.** The regular-Vt pair needed so much V<sub>SG</sub> that
+     at a 0.79 V input the tail source had 9 mV across it in ss. Its current fell from 2 µA
+     to 0.18 µA.
+
+   A low-Vt pair fixes the second and keeps σ at 5.2 mV.
+
+## Layout plan
+
+- **Input pair:** 8 units in a 2 × 4 common-centroid array, rows ABBA / BAAB, with a dummy at
+  each row end, gates of the dummies to vdd. One n-well with an n+ guard ring.
+- **Mirror load and second stage:** one row, D 6 A B B A 6 D, with a p+ guard ring.
+- **Bias mirror:** one row, D 7 5 5 8 8 5 5 7 D.
+- **Bias resistor:** four parallel strips with a dummy strip at each side.
+- **Routing:**
+  - OUT1 and XM2_drain: equal, short and equally loaded.
+  - TAIL: short and symmetric to both halves of the pair.
+  - inp and inn: routed symmetrically.
+  - VBIAS (about 1 MΩ): away from `out`, which swings rail to rail.
 
 ## Tools
 

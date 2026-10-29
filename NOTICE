@@ -2,8 +2,8 @@ sky130-comparator-layout
 Copyright 2026 Mauro Rodriguez Blasco
 
 Layout, physical verification and post-layout analysis by Mauro Rodriguez Blasco.
-The first version of the circuit was written by Claude (Anthropic) and simulated with
-VibeSPICE, by the same author: https://github.com/mauro-hw/vibespice
+The circuit was designed in VibeSPICE, by the same author, with Claude Code (Anthropic)
+as its agent, and reviewed with Claude: https://github.com/mauro-hw/vibespice
 
 If you reuse or adapt this design, keep this notice with it
 (Apache License 2.0, section 4(d)).
