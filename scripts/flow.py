@@ -88,7 +88,7 @@ ext2spice -o {cell}_pex.spice""", cells, out)
 
 
 def lvs(cell: str, ref: Path | None = None, cells: Path = MAG, out: Path = BUILD) -> bool:
-    ref = ref or ROOT / "netlist" / f"{cell}.spice"
+    ref = (ref or ROOT / "netlist" / f"{cell}.spice").resolve()   # Netgen runs in out/
     if not ref.is_file():
         sys.exit(f"No reference netlist for {cell}: {ref}")
     if shutil.which("netgen") is None:
