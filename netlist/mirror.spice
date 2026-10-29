@@ -1,0 +1,12 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* First layout exercise: the comparator's NMOS mirror load (XM3, XM4), one unit w=1 l=4 and
+* two units each, in one row D A B B A D: A is XM3 (the output, out), B is XM4 (the diode,
+* in), D a dummy with every terminal at vss. Reference for LVS (scripts/flow.py lvs mirror);
+* Netgen merges the units in parallel and ignores mult.
+.subckt mirror in out vss
+XM3 out in vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+XM4 in in vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+XMD vss vss vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+.ends mirror

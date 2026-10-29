@@ -78,6 +78,7 @@ ext2spice lvs
 ext2spice -o {cell}_lvs.spice
 ext2spice default
 ext2spice hierarchy off
+ext2spice subcircuit top on
 ext2spice cthresh 0
 ext2spice -o {cell}_pex.spice""", cells, out)
     lvs, pex = out / f"{cell}_lvs.spice", out / f"{cell}_pex.spice"
@@ -147,17 +148,17 @@ XS d2 g 0 0 sky130_fd_pr__nfet_01v8 w=2 l=1
 .control
 op
 let ie=-i(VD)
-let is=-i(VD2)
-print ie is
+let ir=-i(VD2)
+print ie ir
 .endc
 .end
 """)
         done = subprocess.run(["ngspice", "-b", "tb.cir"], cwd=out, capture_output=True, text=True)
-        got = dict(re.findall(r"^(ie|is)\s*=\s*(\S+)", done.stdout, re.M))
-        same = len(got) == 2 and abs(float(got["ie"]) / float(got["is"]) - 1) < 0.02
+        got = dict(re.findall(r"^(ie|ir)\s*=\s*(\S+)", done.stdout, re.M))
+        same = len(got) == 2 and abs(float(got["ie"]) / float(got["ir"]) - 1) < 0.02
         print(f"PEX in ngspice: {float(got.get('ie', 'nan')) * 1e6:.2f} µA extracted, "
-              f"{float(got.get('is', 'nan')) * 1e6:.2f} µA in the schematic"
-              if len(got) == 2 else f"PEX in ngspice failed:\n{done.stdout[-800:]}")
+              f"{float(got.get('ir', 'nan')) * 1e6:.2f} µA in the schematic"
+              if len(got) == 2 else f"PEX in ngspice failed:\n{(done.stdout + done.stderr)[-1500:]}")
         return ok and same
 
 
