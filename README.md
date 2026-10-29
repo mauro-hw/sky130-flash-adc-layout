@@ -82,6 +82,8 @@ missing codes, a DNL of 0.19 LSB and an INL of 0.15 LSB in every corner.
 
    A low-Vt pair fixes the second and keeps σ at 5.2 mV.
 
+Every problem met on the way, its cause, its fix and who found it: [docs/diary.md](docs/diary.md).
+
 ## Layout plan
 
 - **Input pair:** 8 units in a 2 × 4 common-centroid array, rows ABBA / BAAB, with a dummy at
