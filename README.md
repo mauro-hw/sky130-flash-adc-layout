@@ -6,9 +6,9 @@ the pre-layout and post-layout performance in three process corners.
 
 **Status:** the circuit is designed and verified before layout. In the layout, the NMOS
 mirror load ([mag/mirror.mag](mag/mirror.mag)), the PMOS input pair
-([mag/pair.mag](mag/pair.mag)), the second stage ([mag/stage2.mag](mag/stage2.mag)) and the
-PMOS bias mirror ([mag/bias.mag](mag/bias.mag)) pass DRC and LVS; the bias resistor and the
-top cell come next.
+([mag/pair.mag](mag/pair.mag)), the second stage ([mag/stage2.mag](mag/stage2.mag)), the
+PMOS bias mirror ([mag/bias.mag](mag/bias.mag)) and the bias resistor
+([mag/rbias.mag](mag/rbias.mag)) pass DRC and LVS; the top cell comes next.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
@@ -86,16 +86,25 @@ missing codes, a DNL of 0.19 LSB and an INL of 0.15 LSB in every corner.
 
    A low-Vt pair fixes the second and keeps σ at 5.2 mV.
 
-Every problem met on the way, its cause, its fix and who found it: [docs/diary.md](docs/diary.md).
+Every problem met on the way, its cause and its fix: [docs/diary.md](docs/diary.md).
 
-## Layout plan
+## Layout
 
-- **Input pair:** 8 units in a 2 × 4 common-centroid array, rows ABBA / BAAB, with a dummy at
-  each row end, gates of the dummies to vdd. One n-well with an n+ guard ring.
-- **Mirror load and second stage:** one row, D 6 A B B A 6 D, with a p+ guard ring.
-- **Bias mirror:** one row, D 7 5 5 8 8 5 5 7 D.
-- **Bias resistor:** four parallel strips with a dummy strip at each side.
-- **Routing:**
+Each block is a cell of `mag/` with its own LVS reference in `netlist/`; why each one is drawn
+as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
+
+- **Input pair (`pair`):** 8 units in a 2 × 4 common centroid, rows D A B B A D / D B A A B D,
+  in one n-well with an n+ guard ring. The dummies' gates go to vdd, and each drain carries two
+  of them.
+- **Mirror load (`mirror`):** one row, D B A A B D, with a p+ guard ring; the dummies touch the
+  diode's node.
+- **Second stage (`stage2`):** XM6 alone, two fingers with `out` on the shared middle column.
+  Its errors reach the input divided by the first stage's gain, so it needs no centroid.
+- **Bias mirror (`bias`):** one row, D 8 5 5 7 7 5 5 8 D: `out` on one shared column, the
+  dummies on VBIAS.
+- **Bias resistor (`rbias`):** four strips in series as a serpentine, without dummies: its
+  value sets the currents, not the offset.
+- **Routing, in the top cell:**
   - OUT1 and XM2_drain: equal, short and equally loaded.
   - TAIL: short and symmetric to both halves of the pair.
   - inp and inn: routed symmetrically.

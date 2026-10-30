@@ -318,3 +318,27 @@ go at the end of each day.
 ### Result
 - `python3 scripts/flow.py all bias`: no DRC errors, LVS matches `netlist/bias.spice`
   uniquely, extraction and GDS done.
+
+## 2026-10-30 · The bias resistor
+
+### Its value sets the currents, not the offset
+- In tt, 5 % more resistance lowers the tail current by 4.3 % and moves the offset by
+  0.001 mV: every mirror copies the same reference, so all the currents scale together. The
+  value decides speed and power, and the process moves this poly's resistance by more than
+  that anyway; that is why the circuit is checked in three corners.
+- So no dummies: in series, a slightly different outer strip changes only the total. The
+  generator's `dummy` option draws none for this resistor anyway.
+
+### Four strips in series: a serpentine
+- The generator draws four separate strips, 0.35 × 55 µm and 0.83 µm apart, with a contact at
+  each end: a block of about 4.5 × 61 µm, four times longer than any other.
+- Joined in esses (tops of strips 1–2, bottoms of 2–3, tops of 3–4), every link is a 0.83 µm
+  jump between neighbours; any other order needs a 55 µm wire alongside the strips. With an
+  even number of strips, both ends, `VBIAS` on strip 1 and `vss` on strip 4, come out on the
+  same side.
+- All in metal1: the terminals carry metal1 already, and the guard ring is local interconnect
+  only, so metal1 crosses it.
+
+### Result
+- `python3 scripts/flow.py all rbias`: no DRC errors, LVS matches `netlist/rbias.spice`
+  uniquely, extraction and GDS done.

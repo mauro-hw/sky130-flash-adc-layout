@@ -1,9 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1793380083
-<< checkpaint >>
-rect -2717 -1679 2717 1679
+timestamp 1793380862
 << nwell >>
 rect -1457 -419 1457 419
 << pmoslvt >>
