@@ -391,3 +391,37 @@ go at the end of each day.
 - `python3 scripts/flow.py all comparator`: no DRC errors, LVS matches
   `netlist/comparator.spice` uniquely, extraction and GDS done. The whole comparator is laid
   out.
+
+## 2026-10-30 · The reference ladder
+
+### For 3 bits, the ladder's matching hardly matters
+- 16 strips `res_high_po_1p41`, 1.41 × 47 µm, two per step: 11.06 kΩ each in tt, 177 kΩ in all,
+  5.1 µA from the 0.9 V reference.
+- With the PDK's mismatch models, 200 ladders give a tap error of σ = 0.42 mV (the comparator's
+  offset: 5.3 mV), and at worst 0.011 LSB of DNL and 0.018 LSB of INL, against ±0.5 LSB. An LSB
+  is 112.5 mV; even a gradient of 10 % from end to end would bend the INL by about 0.1 LSB.
+- So the decisions were about fitting the ladder to the comparators, not about matching.
+
+### Every tap on the same edge
+- Each step goes up one strip and down the next, so every two strips the serpentine is back on
+  the bottom edge: `vss`, the seven taps and `top` all leave there, one every 3.78 µm. The top
+  edge only has the middle of each step.
+
+### Compact, not spread out
+- One block beside the comparators, rather than each step next to its own comparator: the
+  routing is predictable, the strips share their surroundings, and the generator builds it in
+  one piece. Its cost, seven tap wires fanning out to comparators 34 µm apart, comes when the
+  ADC is assembled.
+
+### Dummies in a resistor array
+- A strip's resistance depends on its width, which etching sets. The outer strips have empty
+  space on one side, so their edges etch differently and they come out slightly off. Without
+  dummies those would be the first step's strip (at `vss`) and the last one's (at `top`).
+- A dummy at each end takes the edge. Its two ends are tied to `vss`, so it carries no current
+  and does not float. The generator's `dummy` option draws none for this resistor, so the block
+  has 18 strips and the outer two are the dummies. LVS counts them as devices, so they are in
+  the reference netlist.
+
+### Result
+- `python3 scripts/flow.py all ladder`: no DRC errors, LVS matches `netlist/ladder.spice`
+  uniquely, extraction and GDS done.

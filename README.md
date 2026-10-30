@@ -7,7 +7,7 @@ the pre-layout and post-layout performance in three process corners.
 **Status:** laid out and verified. The top cell, [mag/comparator.mag](mag/comparator.mag)
 ([gds/comparator.gds](gds/comparator.gds)), passes DRC and LVS against the schematic, and its
 extracted netlist behaves as the schematic does in DC; the layout costs it 22 to 41 % of its
-speed.
+speed. The ADC's reference ladder ([mag/ladder.mag](mag/ladder.mag)) also passes DRC and LVS.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
@@ -130,6 +130,10 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   dummies on VBIAS.
 - **Bias resistor (`rbias`):** four strips in series as a serpentine, without dummies: its
   value sets the currents, not the offset.
+- **Reference ladder (`ladder`), the ADC's:** 16 strips `res_high_po_1p41` in series as a
+  serpentine, two per step, so `vss`, the seven taps and `top` all leave on one edge, and a dummy
+  strip at each end. For 3 bits its matching hardly matters: 200 ladders with the PDK's
+  mismatch give at worst 0.011 LSB of DNL and 0.018 LSB of INL.
 - **Top cell (`comparator`):** about 34 × 61 µm, the resistor's height. `bias` and `stage2`
   side by side on top, so that `out` stays short and away from the inputs; `pair` below them
   and `mirror` at the bottom, so that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on

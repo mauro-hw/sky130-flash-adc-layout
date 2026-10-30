@@ -1,0 +1,33 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The 3-bit flash ADC's reference ladder: from top (the 0.9 V reference) to vss in 8 equal
+* steps of 112.5 mV, whose 7 taps are the comparators' inn. Each step is two high-resistivity
+* poly strips 1.41 x 47 um in series (11.06 kohm each in tt, 177 kohm in all, 5.1 uA). Designed
+* in VibeSPICE (project layout-project, block ladder).
+*
+* Layout: one block of 18 strips side by side in a p+ guard ring, joined as a serpentine (the
+* middle of each step at the top edge), so vss, the 7 taps and top all leave on the bottom
+* edge. The two outer strips are dummies with both ends on vss. Matching hardly matters for 3
+* bits: with the PDK's mismatch, 200 ladders give at worst 0.011 LSB of DNL and 0.018 of INL.
+* Reference for LVS (scripts/flow.py lvs ladder).
+.subckt ladder top tap1 tap2 tap3 tap4 tap5 tap6 tap7 vss
+xr1 tap1 xr1_xr2 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr2 xr1_xr2 vss vss sky130_fd_pr__res_high_po_1p41 l=47
+xr3 tap2 xr3_xr4 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr4 xr3_xr4 tap1 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr5 tap3 xr5_xr6 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr6 xr5_xr6 tap2 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr7 tap4 xr7_xr8 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr8 xr7_xr8 tap3 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr9 tap5 xr9_xr10 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr10 xr9_xr10 tap4 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr11 tap6 xr11_xr12 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr12 xr11_xr12 tap5 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr13 tap7 xr13_xr14 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr14 xr13_xr14 tap6 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr15 top xr15_xr16 vss sky130_fd_pr__res_high_po_1p41 l=47
+xr16 xr15_xr16 tap7 vss sky130_fd_pr__res_high_po_1p41 l=47
+* dummies
+XRD vss vss vss sky130_fd_pr__res_high_po_1p41 l=47 mult=2 m=2
+.ends ladder

@@ -1,0 +1,62 @@
+magic
+tech sky130A
+magscale 1 2
+timestamp 1793385509
+<< checkpaint >>
+rect -1313 -1313 8247 11771
+rect -658 -1460 7592 -1313
+<< locali >>
+rect -17 10000 254 10040
+rect 6680 10000 6951 10040
+rect -17 200 254 240
+rect 6680 200 6951 240
+<< metal1 >>
+rect 501 10100 1141 10160
+rect 1257 10100 1897 10160
+rect 2013 10100 2653 10160
+rect 2769 10100 3409 10160
+rect 3525 10100 4165 10160
+rect 4281 10100 4921 10160
+rect 5037 10100 5677 10160
+rect 5793 10100 6433 10160
+rect 123 300 763 360
+rect 879 300 1519 360
+rect 1635 300 2275 360
+rect 2391 300 3031 360
+rect 3147 300 3787 360
+rect 3903 300 4543 360
+rect 4659 300 5299 360
+rect 5415 300 6055 360
+rect 602 -200 662 160
+rect 980 -200 1040 160
+rect 1736 -200 1796 160
+rect 2492 -200 2552 160
+rect 3248 -200 3308 160
+rect 4004 -200 4064 160
+rect 4760 -200 4820 160
+rect 5516 -200 5576 160
+rect 6272 -200 6332 160
+use sky130_fd_pr__res_high_po_1p41_ZL53Z3  XR
+timestamp 1793385509
+transform 1 0 3467 0 1 5229
+box -3520 -5282 3520 5282
+<< labels >>
+flabel metal1 622 -190 642 -170 0 FreeSans 3 0 0 0 vss
+port 1 nsew
+flabel metal1 1000 -190 1020 -170 0 FreeSans 3 0 0 0 tap1
+port 2 nsew
+flabel metal1 1756 -190 1776 -170 0 FreeSans 3 0 0 0 tap2
+port 3 nsew
+flabel metal1 2512 -190 2532 -170 0 FreeSans 3 0 0 0 tap3
+port 4 nsew
+flabel metal1 3268 -190 3288 -170 0 FreeSans 3 0 0 0 tap4
+port 5 nsew
+flabel metal1 4024 -190 4044 -170 0 FreeSans 3 0 0 0 tap5
+port 6 nsew
+flabel metal1 4780 -190 4800 -170 0 FreeSans 3 0 0 0 tap6
+port 7 nsew
+flabel metal1 5536 -190 5556 -170 0 FreeSans 3 0 0 0 tap7
+port 8 nsew
+flabel metal1 6292 -190 6312 -170 0 FreeSans 3 0 0 0 top
+port 9 nsew
+<< end >>

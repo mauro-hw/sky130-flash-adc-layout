@@ -1,10 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1793380862
-<< checkpaint >>
-rect -1313 -1313 2107 13371
-rect -1137 -1420 1931 -1313
+timestamp 1793385509
 << locali >>
 rect 640 200 811 240
 << metal1 >>
@@ -14,7 +11,7 @@ rect 289 300 505 360
 rect 123 -160 173 260
 rect 621 -160 671 260
 use sky130_fd_pr__res_xhigh_po_0p35_AKBG5Q  XR
-timestamp 1793380862
+timestamp 1793385509
 transform 1 0 397 0 1 6029
 box -450 -6082 450 6082
 << labels >>
