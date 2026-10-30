@@ -232,3 +232,31 @@ go at the end of each day.
 - **Cause:** Magic rewrote the unexpanded cell without its `magscale 1 2`, at half the
   resolution, rounding every coordinate (1541 became 770).
 - **Fix:** `select top cell` and `expand` before saving; expanded, it is written intact.
+
+## 2026-10-30 · How the comparator decides
+
+### Four blocks, one chain
+- **Bias:** R1–R4 and the diode XM8 set about 1 µA. XM5 and XM7 share XM8's gate, `VBIAS`,
+  and copy it: 2 µA into `TAIL`, 1 µA into `out`.
+- **Input pair:** with `inp` above `inn`, XM1, a PMOS, gets less V_SG and takes less of the
+  2 µA; XM2 takes more.
+- **Mirror load:** XM4 carries XM2's current and XM3 copies it, pulling it out of `OUT1`
+  while XM1 pushes its own in. XM3 now pulls more than XM1 gives, so `OUT1` falls.
+- **Second stage:** XM7 pushes a fixed 1 µA into `out`; XM6, with its gate on `OUT1`, pulls.
+  `OUT1` lower makes XM6 weaker, XM7 wins, and `out` rises.
+- Two inverting stages make a non-inverting whole: `inp` up, `OUT1` down, `out` up.
+
+### Each stage is like an inverter, not like a divider
+- A pull-up and a pull-down in series, with the output between them. But in saturation each
+  is close to a current source, so when their currents disagree the node does not settle
+  nearby, as between two resistors: it moves until one transistor leaves saturation.
+- In tt, at the middle tap, going from −1 to +1 mV between the inputs changes the pair's
+  currents by about 15 nA (1.5 %), yet moves `OUT1` from 0.640 to 0.506 V, a gain of about 67,
+  and `out` from 0.070 to 1.753 V.
+
+### XM6 does not have to turn off
+- **What I thought:** `out` rises because `OUT1` falls below XM6's threshold.
+- **What happens:** XM6's Vth is 0.445 V, and at 0.506 V it is still on, but it can pull only
+  0.40 µA, less than XM7's 1 µA. At the balance point, `OUT1` ≈ 0.573 V, it pulls 1.09 µA.
+- **Lesson:** a stage switches when one side becomes weaker than the other, not when a
+  transistor turns off.
