@@ -1,0 +1,18 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* Fourth layout exercise: the comparator's PMOS bias mirror, one unit w=2 l=1: the diode XM8
+* (2 units), the tail source XM5 (4) and the second stage's load XM7 (2), as one low-Vt device
+* of ten fingers in one n-well with its guard ring, in the order D 8 5 5 7 7 5 5 8 D. All gates
+* are vbias and all sources vdd, so neighbours of different transistors share a vdd column; the
+* two XM7 fingers share the out column, the node that swings rail to rail, and the dummies
+* touch vbias, a DC node where their capacitance does no harm. Its errors change the currents
+* by a few per cent but hardly the offset (0.03 mV for 5 %).
+* Diffusion columns, left to right: vdd vbias vdd tail vdd out vdd tail vdd vbias vdd.
+* Guard ring (the body): vdd. Reference for LVS (scripts/flow.py lvs bias).
+.subckt bias vbias tail out vdd
+XM8 vbias vbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=1 mult=2 m=2
+XM5 tail vbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=1 mult=4 m=4
+XM7 out vbias vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=1 mult=2 m=2
+XMD vbias vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=1 mult=2 m=2
+.ends bias

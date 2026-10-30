@@ -288,3 +288,33 @@ go at the end of each day.
 ### Result
 - `python3 scripts/flow.py all stage2`: no DRC errors, LVS matches `netlist/stage2.spice`
   uniquely, extraction and GDS done.
+
+## 2026-10-30 · The bias mirror
+
+### A mirror with three outputs
+- XM8 (the diode, `VBIAS`), XM5 (`TAIL`, ×2) and XM7 (`out`, ×1) are PMOS of one unit
+  (W = 2, L = 1), with their gates on `VBIAS` and their sources on `vdd`: only the drains differ.
+- **Matching is not critical:** in tt, 5 % more current in any of them changes the tail current
+  by about 3 % but the offset by 0.03 mV at most. XM5 and XM8 set the tail, which both halves of
+  the pair share; XM7 comes after the first stage's gain, like XM6.
+
+### The order: D 8 5 5 7 7 5 5 8 D
+- With shared diffusion, neighbours of different transistors must share `vdd`, so a single
+  finger between two different ones would have `vdd` on both columns and do nothing. In a
+  symmetric row only two orders work: XM7 at the ends and XM8 in the middle, or the reverse.
+- I chose XM8 at the ends and XM7 in the middle. `out` gets one shared column, 0.58 µm² of
+  junction instead of 1.16 µm², and leaves by one short riser instead of a wire along the row.
+  The dummies touch `VBIAS`, a DC node where their capacitance helps keep it still.
+- Quiet on top: the `VBIAS` gate bar, the diode's two "U"s and the `vdd` bus. Loud at the
+  bottom: `out`, with `TAIL`. `out` has to cross the `TAIL` bus, because `TAIL`'s two columns
+  straddle it; `TAIL` is common to both halves of the pair, which rejects what couples into it.
+
+### Spacing rules apply inside one net
+- **Symptom:** in the draft, 6 × "Metal2 spacing < 0.14um" in the diode's "U"s.
+- **Cause:** the top of each "U" was 0.12 µm above the pad of its own via: one net, but a
+  notch narrower than the rule.
+- **Fix:** the "U"s 0.1 µm higher.
+
+### Result
+- `python3 scripts/flow.py all bias`: no DRC errors, LVS matches `netlist/bias.spice`
+  uniquely, extraction and GDS done.

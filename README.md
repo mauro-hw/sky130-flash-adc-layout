@@ -6,8 +6,9 @@ the pre-layout and post-layout performance in three process corners.
 
 **Status:** the circuit is designed and verified before layout. In the layout, the NMOS
 mirror load ([mag/mirror.mag](mag/mirror.mag)), the PMOS input pair
-([mag/pair.mag](mag/pair.mag)) and the second stage ([mag/stage2.mag](mag/stage2.mag)) pass DRC
-and LVS; the bias and the top cell come next.
+([mag/pair.mag](mag/pair.mag)), the second stage ([mag/stage2.mag](mag/stage2.mag)) and the
+PMOS bias mirror ([mag/bias.mag](mag/bias.mag)) pass DRC and LVS; the bias resistor and the
+top cell come next.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
