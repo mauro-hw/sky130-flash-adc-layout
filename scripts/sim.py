@@ -4,14 +4,17 @@
 """
 The comparator in the three sign-off corners, with ngspice and the SKY130 models: its random
 offset from many copies with the PDK's mismatch models, and nominally its offset at each tap,
-its supply current and its output levels. The same script runs the pre-layout netlist and the
-extracted one, so that the two can be compared.
+its supply current, its output levels and its delay. The same script runs the pre-layout
+netlist and the extracted one, so that the two can be compared.
 
-    python3 scripts/sim.py [netlist] [--copies 112] [--seed 7]
+    python3 scripts/sim.py [netlist] [--copies 112] [--seed 7] [--overdrive 10]
 
 The netlist defines the subcircuit 'comparator' (inp inn out vdd vss); the PDK is read from
 PDK_ROOT (default ~/.volare). Each copy's inp is its tap plus one common sweep of ±60 mV, so
-one .dc measures every copy; its offset is where its output crosses half the supply.
+one .dc measures every copy; its offset is where its output crosses half the supply. The delay
+is the only row that the layout's capacitances can change: inp steps from the overdrive below
+each tap to the overdrive above and back, and the delay runs from inp crossing the tap to out
+crossing half the supply.
 """
 from __future__ import annotations
 
@@ -110,11 +113,31 @@ def nominal(netlist: Path, process: str, temp: float, vdd: float) -> dict:
             "high": min(lvl[0], lvl[2]), "low": max(lvl[1], lvl[3])}
 
 
+def delay(netlist: Path, process: str, temp: float, vdd: float, overdrive: float) -> dict:
+    """Without mismatch: the slowest tap's delay, out rising and out falling, for inp stepping
+    from the overdrive below its tap to the overdrive above (at 1 us) and back (at 3 us)."""
+    pins, lines = ports(netlist), head(netlist, process, temp, vdd, None)
+    for t, tap in enumerate(TAPS):
+        lines += [f"VT{t} tap{t} 0 {tap}",
+                  f"VP{t} in{t} 0 PULSE({tap - overdrive} {tap + overdrive} 1u 1n 1n 2u 1)",
+                  x(f"X{t}", pins, dict(inp=f"in{t}", inn=f"tap{t}", out=f"o{t}", vdd="vdd", vss="0"))]
+    lines += [".tran 1n 5u"]
+    for t, tap in enumerate(TAPS):
+        lines += [f".meas tran r{t} trig v(in{t}) val={tap} rise=1 targ v(o{t}) val={{vdd/2}} rise=1",
+                  f".meas tran f{t} trig v(in{t}) val={tap} fall=1 targ v(o{t}) val={{vdd/2}} fall=1"]
+    out = run("\n".join(lines + [".end"]) + "\n")
+    got = {k: float(v) for k, v in re.findall(r"^([rf]\d)\s*=\s*(\S+)", out, re.M)}
+    if len(got) != 14:
+        sys.exit(f"{process}: the delay bench failed\n{out[-2000:]}")
+    return {"rise": max(got[f"r{t}"] for t in range(7)), "fall": max(got[f"f{t}"] for t in range(7))}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0].strip())
     ap.add_argument("netlist", nargs="?", default=str(ROOT / "netlist" / "comparator.spice"))
     ap.add_argument("--copies", type=int, default=112, help="copies with mismatch, spread over the 7 taps")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--overdrive", type=float, default=10, help="mV either side of the tap, for the delay")
     args = ap.parse_args()
     netlist = Path(args.netlist).resolve()
     if not lib().is_file():
@@ -123,7 +146,8 @@ def main() -> int:
     def corner(c):
         process, temp, vdd = c
         return offsets(netlist, process, temp, vdd, args.copies, args.seed), \
-            nominal(netlist, process, temp, vdd)
+            {**nominal(netlist, process, temp, vdd),
+             **delay(netlist, process, temp, vdd, args.overdrive / 1e3)}
     with ThreadPoolExecutor(max_workers=3) as ex:
         results = list(ex.map(corner, CORNERS))
 
@@ -136,7 +160,9 @@ def main() -> int:
                                                     f"{mv(min(o))} / {mv(max(o))} mV"),
             ("Offset without mismatch, worst tap", lambda o, n: f"{mv(max(n['offset'], key=abs))} mV"),
             ("Supply current, largest", lambda o, n: f"{n['iq'] * 1e6:.2f} µA"),
-            ("Output high / low", lambda o, n: f"{n['high']:.3f} / {n['low'] * 1e3:.0f} mV")]
+            ("Output high / low", lambda o, n: f"{n['high']:.3f} / {n['low'] * 1e3:.0f} mV"),
+            (f"Delay at {args.overdrive:g} mV overdrive, slowest tap: out rising / falling",
+             lambda o, n: f"{n['rise'] * 1e9:.0f} / {n['fall'] * 1e9:.0f} ns")]
     for name, f in rows:
         print(f"| {name} | " + " | ".join(f(o, n) for o, n in results) + " |")
     return 0

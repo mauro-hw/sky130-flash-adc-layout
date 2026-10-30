@@ -4,11 +4,10 @@ The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, from
 schematic to the post-layout simulation: DRC, LVS, parasitic extraction and a comparison of
 the pre-layout and post-layout performance in three process corners.
 
-**Status:** the circuit is designed and verified before layout. In the layout, the NMOS
-mirror load ([mag/mirror.mag](mag/mirror.mag)), the PMOS input pair
-([mag/pair.mag](mag/pair.mag)), the second stage ([mag/stage2.mag](mag/stage2.mag)), the
-PMOS bias mirror ([mag/bias.mag](mag/bias.mag)) and the bias resistor
-([mag/rbias.mag](mag/rbias.mag)) pass DRC and LVS; the top cell comes next.
+**Status:** laid out and verified. The top cell, [mag/comparator.mag](mag/comparator.mag)
+([gds/comparator.gds](gds/comparator.gds)), passes DRC and LVS against the schematic, and its
+extracted netlist behaves as the schematic does in DC; the layout costs it 22 to 41 % of its
+speed.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
@@ -28,6 +27,7 @@ One of the seven comparators of a 3-bit flash ADC: 1.8 V supply, input range 0 t
   PMOS. The tail carries 2 µA and the second stage 1 µA.
 
 Pre-layout netlist, the reference for LVS: [netlist/comparator.spice](netlist/comparator.spice).
+It includes the layout's eight dummies, switched off.
 
 | Device | Role | Type | Unit W × L (µm) | Units | Gate area |
 |---|---|---|---|---|---|
@@ -51,20 +51,46 @@ also work over the whole input range at 1.60 V.
 ## Pre-layout results
 
 `python3 scripts/sim.py`: 112 copies with the PDK's mismatch models, 16 at each tap, and the
-nominal circuit, in the three sign-off corners. The same script will run the extracted
-netlist.
+nominal circuit, in the three sign-off corners. The delay is the slowest tap's, from `inp`
+crossing the tap to `out` crossing half the supply, with `inp` stepping 10 mV either side.
 
 | | tt, 25 °C, 1.80 V | ss, 100 °C, 1.60 V | ff, −40 °C, 1.95 V |
 |---|---|---|---|
-| Offset σ, with mismatch | 5.18 mV | 5.16 mV | 5.18 mV |
-| Offset mean; min / max | −0.76; −11.1 / +14.4 mV | −0.79; −11.1 / +14.3 mV | −0.75; −11.0 / +14.5 mV |
+| Offset σ, with mismatch | 5.36 mV | 5.37 mV | 5.32 mV |
+| Offset mean; min / max | −0.14; −12.3 / +13.6 mV | −0.14; −12.3 / +13.8 mV | −0.12; −12.4 / +13.4 mV |
 | Offset without mismatch, worst tap | −0.13 mV | −0.19 mV | +0.10 mV |
 | Supply current, largest | 4.55 µA | 4.31 µA | 4.63 µA |
 | Output high / low | 1.800 V / 39 mV | 1.600 V / 75 mV | 1.950 V / 21 mV |
+| Delay, `out` rising / falling | 204 / 106 ns | 212 / 122 ns | 194 / 95 ns |
 | Tail at the top tap, V<sub>SD</sub> / current | 0.41 V / 2.01 µA | 0.28 V / 1.87 µA | 0.52 V / 2.03 µA |
+
+The σ of 112 copies is itself uncertain: on the same netlist, other random draws give between
+5.06 and 5.89 mV. Without the dummies, this draw gave 5.18 mV.
 
 In VibeSPICE, the whole ADC with seven of these comparators and one mismatch sample has no
 missing codes, a DNL of 0.19 LSB and an INL of 0.15 LSB in every corner.
+
+## Post-layout results
+
+`python3 scripts/sim.py build/comparator_pex.spice`: the same benches on the netlist extracted
+from the layout, with every finger as a device of its own, its drawn junctions and 42 wiring
+capacitances.
+
+| | tt, 25 °C, 1.80 V | ss, 100 °C, 1.60 V | ff, −40 °C, 1.95 V |
+|---|---|---|---|
+| Offset σ, with mismatch | 5.23 mV | 5.22 mV | 5.22 mV |
+| Offset mean; min / max | +0.44; −14.5 / +11.2 mV | +0.43; −14.3 / +11.1 mV | +0.46; −14.6 / +11.2 mV |
+| Offset without mismatch, worst tap | −0.13 mV | −0.19 mV | +0.10 mV |
+| Supply current, largest | 4.55 µA | 4.31 µA | 4.63 µA |
+| Output high / low | 1.800 V / 39 mV | 1.600 V / 75 mV | 1.950 V / 21 mV |
+| Delay, `out` rising / falling | 254 / 148 ns | 268 / 172 ns | 237 / 131 ns |
+
+- **In DC the layout changes nothing:** the offset without mismatch, the current and the
+  output levels are identical, and σ stays within the uncertainty of its estimate, far below
+  8 mV.
+- **It costs speed:** 22 to 26 % with `out` rising and 38 to 41 % falling. In tt the drawn
+  junctions add 5 ns; the rest is the wiring, mostly on `OUT1`, which carries 11.5 fF next to
+  the 40 fF of XM6's gate. The ADC has no speed requirement yet.
 
 ## How the design got here
 
@@ -104,11 +130,17 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   dummies on VBIAS.
 - **Bias resistor (`rbias`):** four strips in series as a serpentine, without dummies: its
   value sets the currents, not the offset.
-- **Routing, in the top cell:**
-  - OUT1 and XM2_drain: equal, short and equally loaded.
-  - TAIL: short and symmetric to both halves of the pair.
-  - inp and inn: routed symmetrically.
-  - VBIAS (about 1 MΩ): away from `out`, which swings rail to rail.
+- **Top cell (`comparator`):** about 34 × 61 µm, the resistor's height. `bias` and `stage2`
+  side by side on top, so that `out` stays short and away from the inputs; `pair` below them
+  and `mirror` at the bottom, so that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on
+  the left, upside down, so that `VBIAS` goes straight to it.
+- **Routing, as extracted:**
+  - `OUT1` and `XM2_drain`: short, with nearly equal couplings to the inputs (`inp`–`OUT1`
+    1.76 fF, `inn`–`XM2_drain` 1.73 fF).
+  - `TAIL`: one short wire from the bias mirror straight down to the pair's tail bus.
+  - `out`, which swings rail to rail: 0.06 fF to `inn` and practically nothing to `inp`.
+  - `VBIAS` (about 1 MΩ): short, on the far side from `out`; 0.32 fF between them, inside the
+    bias mirror.
 
 ## The flow
 
@@ -118,7 +150,7 @@ The layout cells live in `mag/`; start Magic there (`cd mag && magic`) and it re
 ```bash
 python3 scripts/flow.py selftest          # the tools, on a transistor Magic generates
 python3 scripts/flow.py all comparator    # DRC, LVS against netlist/comparator.spice, PEX, GDS
-python3 scripts/sim.py build/comparator_pex.spice    # the same table as above, after layout
+python3 scripts/sim.py build/comparator_pex.spice    # the same tables, after layout
 ```
 
 | Step | Tool |

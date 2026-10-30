@@ -8,7 +8,8 @@
 *
 * Pre-layout reference for LVS. Every device is a SKY130 device; each transistor is a unit
 * repeated m times, with mult= equal to m= so that the PDK's mismatch averages over its
-* fingers. Designed in VibeSPICE (project layout-project, block comparator_cmos).
+* fingers. Designed in VibeSPICE (project layout-project, block comparator_cmos). The dummies
+* at the end are the layout's: switched off, they share diffusion with the node they touch.
 .subckt comparator inp inn out vdd vss
 * bias: 4 x 314.8 kohm = 1.26 Mohm
 XR1 VBIAS R1_R2 vss sky130_fd_pr__res_xhigh_po_0p35 l=55
@@ -26,4 +27,9 @@ XM2 XM2_drain inn TAIL vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=4 m=4
 XM3 OUT1 XM2_drain vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
 XM4 XM2_drain XM2_drain vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
 XM6 out OUT1 vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+* dummies: two on each drain of the pair, two on the mirror's diode node, two on VBIAS
+XMDA OUT1 vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=2 m=2
+XMDB XM2_drain vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=2 m=2
+XMDC XM2_drain vss vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+XMDD VBIAS vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=1 mult=2 m=2
 .ends comparator

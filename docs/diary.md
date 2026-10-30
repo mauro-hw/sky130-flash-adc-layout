@@ -342,3 +342,52 @@ go at the end of each day.
 ### Result
 - `python3 scripts/flow.py all rbias`: no DRC errors, LVS matches `netlist/rbias.spice`
   uniquely, extraction and GDS done.
+
+## 2026-10-30 · The top cell
+
+### The floorplan: which wire may be long
+- The blocks measure, in µm: bias 14.6 × 5.8, pair 15.4 × 13.2, mirror 27.4 × 4.1, stage2
+  10.3 × 3.7 and the resistor 4.5 × 61.4. The resistor alone sets the comparator's height.
+- In any order one wire is long: XM7 lives in the bias mirror, because it shares `VBIAS` with
+  XM8, and XM6 next to the mirror, so that `OUT1` stays short. The decision is which net may
+  be long and where it runs.
+- My first stack (bias, pair, mirror, stage2) made `out` cross the whole height past the
+  inputs and `OUT1`. Putting stage2 under the bias mirror only moved the long wire to `TAIL`.
+- Final: stage2 beside the bias mirror, so `out` stays short, under the two blocks. `OUT1`
+  reaches stage2 from the pair's top `out1` bus, which the pair already joins to its bottom
+  one. The resistor on the left, upside down, so `VBIAS` goes straight from the bias mirror's
+  gate bar to its terminals without crossing anything.
+- In the extraction, `out` couples 0.06 fF to `inn` and practically nothing to `inp`, and
+  `inp`–`OUT1` (1.76 fF) and `inn`–`XM2_drain` (1.73 fF) are nearly equal.
+
+### Square ends on wires
+- **Symptom:** 5 × "Metal2 width < 0.14um", at the corners of the L-shaped joints.
+- **Cause:** each segment stopped at the centre line of the other, leaving a notch of
+  0.07 µm on the outer corner.
+- **Fix:** every metal2 line runs 0.07 µm past its end points.
+
+### The dummies belong in the reference netlist
+- LVS compares the layout with the netlist, and the layout has eight dummies: two on each
+  drain of the pair, two on the mirror's diode node and two on `VBIAS`. They are now in
+  `netlist/comparator.spice`; switched off, they change nothing nominal.
+
+### A Monte Carlo's σ is itself uncertain
+- With 112 copies the estimate of σ moves from one random draw to another: 5.18, 5.88 and
+  5.32 mV with seeds 7, 8 and 9 on the same netlist. Adding the dummies changes the draw of
+  almost every copy, so with seed 7 σ went from 5.18 to 5.36 mV with no change in the circuit.
+- **Lesson:** compare σ before and after layout within that noise, about ±0.4 mV here.
+
+### What the layout changes: speed, not DC
+- The same `sim.py` on the extracted netlist: the offset without mismatch, the current and the
+  output levels are identical, and σ (5.23 mV in tt) stays within its noise. Capacitance does
+  nothing in DC.
+- A transient shows the cost: the slowest tap's delay at 10 mV overdrive goes from 204 to
+  254 ns with `out` rising and from 106 to 148 ns falling in tt, 22 to 41 % in the three
+  corners.
+- In tt the drawn junctions add 5 ns and the wiring the rest, mostly on `OUT1`: 11.5 fF next to
+  the 40 fF of XM6's gate, on the node that decides.
+
+### Result
+- `python3 scripts/flow.py all comparator`: no DRC errors, LVS matches
+  `netlist/comparator.spice` uniquely, extraction and GDS done. The whole comparator is laid
+  out.
