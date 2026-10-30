@@ -260,3 +260,31 @@ go at the end of each day.
   0.40 µA, less than XM7's 1 µA. At the balance point, `OUT1` ≈ 0.573 V, it pulls 1.09 µA.
 - **Lesson:** a stage switches when one side becomes weaker than the other, not when a
   transistor turns off.
+
+## 2026-10-30 · The second stage
+
+### One NMOS, four decisions
+- **Matching:** XM6's errors reach the input divided by the first stage's gain. In tt, 5 % more
+  current in XM6 moves the offset by 0.06 mV; the same in XM3, before the gain, by 3.8 mV. So
+  no common centroid and no dummies; being the mirror's unit takes care of the systematic part.
+- **Placement:** its own cell, next to the mirror: its gate is XM3's drain, so `OUT1` stays
+  short.
+- **Columns `vss | out | vss`:** `out` gets the shared column, 0.29 µm² of junction instead
+  of 0.58 µm² on two outer ones, so the loudest node has half the capacitance. The `vss`
+  columns tie straight to the ring.
+- **Surroundings:** a guard ring, the body contact, which also collects the charge that
+  `out`'s swings push into the substrate before it reaches the mirror.
+- **Measured and rejected:** dropping the bottom gate contacts would save 0.35 fF on `OUT1`,
+  under 1 % of the 40 fF of XM6's own gate. Not worth it.
+
+### Quiet on top, loud at the bottom
+- `OUT1` enters on a metal1 bar laid over the gates' top contacts, which already carry metal1,
+  so no via is needed.
+- `out` cannot leave the middle column downwards in metal1: between the bottom gate contacts
+  there are 0.33 µm, and a metal1 track needs 0.42. It goes up a via to metal2 and passes over
+  them, as a PCB trace changes layer to cross another.
+- The layers are not the point; the sides are. `OUT1` and `out` never run side by side.
+
+### Result
+- `python3 scripts/flow.py all stage2`: no DRC errors, LVS matches `netlist/stage2.spice`
+  uniquely, extraction and GDS done.

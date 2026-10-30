@@ -1,0 +1,13 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* Third layout exercise: the comparator's second stage XM6, two units of the mirror's unit
+* (w=1 l=4) as one 2-finger device with its guard ring, so that it carries 1 uA at the same
+* V_GS as XM4. Its errors reach the input divided by the first stage's gain (about 67): it
+* needs no common centroid and no dummies. Diffusion columns: vss out vss, so that out, the
+* node that swings rail to rail, has one shared column, half the junction of two outer ones.
+* out1 enters on the gates' top contacts and out leaves downwards, on the opposite side.
+* Guard ring (the body): vss. Reference for LVS (scripts/flow.py lvs stage2).
+.subckt stage2 out1 out vss
+XM6 out out1 vss vss sky130_fd_pr__nfet_01v8_lvt w=1 l=4 mult=2 m=2
+.ends stage2

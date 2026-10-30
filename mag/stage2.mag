@@ -1,0 +1,32 @@
+magic
+tech sky130A
+magscale 1 2
+timestamp 1793377822
+<< checkpaint >>
+rect -1313 -1313 3257 1827
+rect -302 -1440 2246 -1313
+<< locali >>
+rect -17 237 120 277
+rect 1824 237 1961 277
+<< metal1 >>
+rect 147 389 1797 435
+rect 946 283 998 289
+rect 946 225 998 231
+<< via1 >>
+rect 946 231 998 283
+<< metal2 >>
+rect 946 283 998 289
+rect 946 225 998 231
+rect 958 -180 986 225
+use sky130_fd_pr__nfet_01v8_lvt_V2W96S  XM
+timestamp 1793377822
+transform 1 0 972 0 1 257
+box -1025 -310 1025 310
+<< labels >>
+flabel locali 40 250 60 270 0 FreeSans 3 0 0 0 vss
+port 1 nsew
+flabel metal1 400 400 420 420 0 FreeSans 3 0 0 0 out1
+port 2 nsew
+flabel metal2 964 -170 980 -150 0 FreeSans 3 0 0 0 out
+port 3 nsew
+<< end >>

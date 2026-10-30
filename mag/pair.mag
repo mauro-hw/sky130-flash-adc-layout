@@ -1,14 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1793372756
-<< checkpaint >>
-rect -714 1050 3690 1502
-rect -714 930 4022 1050
-rect -1046 -1534 4022 930
-rect -1046 -1654 3902 -1534
-rect -926 -1774 3902 -1654
-rect -926 -1894 3003 -1774
+timestamp 1793377822
 << locali >>
 rect -17 980 120 1020
 rect 2856 980 2993 1020

@@ -5,9 +5,9 @@ schematic to the post-layout simulation: DRC, LVS, parasitic extraction and a co
 the pre-layout and post-layout performance in three process corners.
 
 **Status:** the circuit is designed and verified before layout. In the layout, the NMOS
-mirror load ([mag/mirror.mag](mag/mirror.mag)) and the PMOS input pair
-([mag/pair.mag](mag/pair.mag)) pass DRC and LVS; the bias, the second stage and the top cell
-come next.
+mirror load ([mag/mirror.mag](mag/mirror.mag)), the PMOS input pair
+([mag/pair.mag](mag/pair.mag)) and the second stage ([mag/stage2.mag](mag/stage2.mag)) pass DRC
+and LVS; the bias and the top cell come next.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
