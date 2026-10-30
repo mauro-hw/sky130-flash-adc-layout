@@ -139,3 +139,96 @@ go at the end of each day.
 ### Result
 - The mirror passes `python3 scripts/flow.py all mirror`: no DRC errors, LVS matches
   `netlist/mirror.spice` uniquely, extraction and GDS done.
+
+## 2026-10-30 · Learning to read a layout
+
+### The 4:1 rectangle is the gate
+- **What I saw:** each finger of the mirror is a hatched rectangle, 4 µm wide and 1 µm tall,
+  between two narrow columns of contacts: the 4:1 of the netlist's L = 4 and W = 1.
+- **What it is:** the channel, where the poly crosses the diffusion; Magic draws it as a layer
+  of its own (`nmoslvt`). Along the current, from one column to the next, it measures
+  L = 4 µm; across, W = 1 µm. The poly runs on past the diffusion, and the gate is contacted
+  there, in the horizontal contact bars above and below each finger.
+- **Drain and source** are the narrow columns of diffusion contacts between the gates. Each
+  inner column is shared by the fingers on both sides of it.
+
+### Nothing in the drawing tells drain from source
+- **Cause:** a MOSFET is symmetric. The circuit decides which side is which: in an NMOS the
+  source is the side at the lower voltage.
+- **In the mirror:** columns 0, 2, 4 and 6 go down to the `vss` bus, so they are sources;
+  1, 3 and 5 are drains. Because the columns are shared, neighbouring fingers face opposite
+  ways: S D, D S, S D…
+- **The generator's names don't help:** it labels the columns D0, S1, D2, S3… in turn,
+  whatever they are wired to. In the mirror, S1 is a drain (`in`) and D2 a source (`vss`).
+- **Lesson:** read a layout by following the metal from each column to its net.
+
+### What makes a finger A or B
+- All six fingers are identical; the wiring alone decides whose they are. In a mirror the
+  gates and the sources are common, so only the drain tells the two transistors apart: B's
+  drains (columns 1 and 5) go to `in`, the same net as the gates, which makes B the diode;
+  A's drain (column 3) goes to `out`.
+- I recognised the diode fingers by the metal2 "U" that shorts two terminals: its long leg
+  goes down to the drain column, its short leg to the gate's contact bar.
+- **Common centroid in one row:** counting the real fingers 1 to 4, B sits at 1 and 4 and A
+  at 2 and 3. Both average 2.5, so a gradient along the row shifts A and B alike.
+
+### What the dummies are for
+- **Cause:** a finger at the end of a row has a gate on one side only. Its gate prints
+  slightly differently, and the trench isolation where the diffusion ends presses on it,
+  which changes its mobility and threshold. Without dummies the end fingers would both be
+  B's: a systematic mismatch, the same in every chip.
+- **Fix:** a dummy at each end, so that every real finger has a gate on both sides at the
+  same distance.
+- **Electrically they do nothing:** gate and source at `vss`, so V_GS = 0 and they are off.
+  In ngspice the mirror's two dummies leak 1.5 pA in tt (11 pA in ss at 100 °C) beside the
+  1 µA in `in`. They are still devices, though: LVS sees them, which is why
+  `netlist/mirror.spice` lists them as XMD.
+- **Cost:** area, and a little capacitance on the node they touch (see "One device with six
+  fingers" above).
+
+### A shared column serves two fingers of the same kind
+- A column between two fingers is a terminal of both: two drains, two sources, or, in a
+  series stack, the drain of one and the source of the next. It saves area and capacitance:
+  in the pair's extraction an end column gives its one finger 0.58 µm² of junction, and a
+  shared column gives each of its two fingers 0.29 µm².
+- A PMOS and an NMOS never share one: P+ diffusion sits in an n-well, N+ diffusion in the
+  p-substrate, and they meet only through metal.
+
+## 2026-10-30 · The input pair
+
+### Reading the pair
+- The pair is two PMOS that share the 2 µA of the tail: the one whose gate is lower takes
+  more of it, and the mirror turns the difference into `OUT1`. Any difference between XM1
+  and XM2 shifts that split as an input voltage would: the offset.
+- A finger's gate tells whose it is: on `inp` it is XM1, so its columns are `TAIL` (source)
+  and `OUT1` (drain); on `inn` it is XM2, with `TAIL` and `XM2_drain`.
+- The PMOS sources are on `TAIL`, not on `vdd`: XM5 sits between them and the supply. The
+  fourth terminal, `vdd`, is the body, the n-well under the whole array.
+- Columns, top row D A B B A D: vdd, OUT1, TAIL, XM2_drain, TAIL, OUT1, vdd. Bottom row
+  D B A A B D: vdd, XM2_drain, TAIL, OUT1, TAIL, XM2_drain, vdd. The dummies touch `OUT1` in
+  the top row and `XM2_drain` in the bottom one, so both drains carry two.
+
+### Why the pair has two rows, and why the second is swapped
+- **A transistor of several fingers behaves like their average:** they are in parallel. So
+  where each finger sits decides how much of a position-dependent difference reaches XM1 or
+  XM2; with a Vt that rises 1 mV per position, A at 1 and 2 and B at 3 and 4 differ by
+  2 mV, while B at 1 and 4 and A at 2 and 3 do not differ at all.
+- **Two rows do not add area:** the same eight units in one row would be a strip about
+  25 µm long; in two rows they are a block of 15 × 7 µm, closer together. The arrangement
+  only fights the systematic part, which depends on position. The random part shrinks only
+  with gate area (Pelgrom), which the netlist sets.
+- **The swap gives each transistor the same mix of positions:** A has the ends of the top row
+  and the middle of the bottom one, B the opposite. Whatever depends on position, XM1 and XM2
+  share it. The mirror's single row D B A A B D cancels a linear gradient but gives B both
+  ends and A the middle, so a difference between the ends and the middle of the row, such as
+  the end fingers' nearness to a well edge, becomes offset.
+- **The mirror is not less important:** at the switching point gm₃/gm₁ ≈ 0.9, so a mV of
+  mismatch in the mirror counts almost as much at the input as one in the pair. It stayed in
+  one row because it was the first layout; a 2 × 2 cross-quad (A B / B A) would do better.
+
+### `writeall force` broke a transistor that was not expanded
+- **Symptom:** in a test of the bottom row on a copy, after `load pair` in a new Magic session,
+  painting and `writeall force`, the transistor's cell came back with 20 DRC errors inside it.
+- **Cause:** Magic rewrote the unexpanded cell without its `magscale 1 2`, at half the
+  resolution, rounding every coordinate (1541 became 770).
+- **Fix:** `select top cell` and `expand` before saving; expanded, it is written intact.

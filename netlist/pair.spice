@@ -1,0 +1,18 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* Second layout exercise: the comparator's PMOS input pair (XM1, XM2), one unit w=2 l=2 and
+* four units each, as one low-Vt device of two rows of six fingers (m=2, nf=6) in one n-well
+* with its guard ring: a 2 x 4 common centroid, top row D A B B A D, bottom row D B A A B D.
+* A is XM1 (inp, out1), B is XM2 (inn, xm2_drain), D a dummy with its gate and outer column
+* at vdd. The fingers share diffusion, so in the top row the dummies touch A's drain and in
+* the bottom row B's: two dummies on each drain, which keeps out1 and xm2_drain equally loaded.
+* Diffusion columns, left to right: top row vdd out1 tail xm2_drain tail out1 vdd; bottom row
+* vdd xm2_drain tail out1 tail xm2_drain vdd. Guard ring (the body): vdd.
+* Reference for LVS (scripts/flow.py lvs pair).
+.subckt pair inp inn out1 xm2_drain tail vdd
+XM1 out1 inp tail vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=4 m=4
+XM2 xm2_drain inn tail vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=4 m=4
+XMDA out1 vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=2 m=2
+XMDB xm2_drain vdd vdd vdd sky130_fd_pr__pfet_01v8_lvt w=2 l=2 mult=2 m=2
+.ends pair
