@@ -1,0 +1,52 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The 3-bit flash ADC's encoder: the 7 comparator outputs t1 (lowest) to t7, a thermometer code,
+* into 3 bits: b2 = t4, b1 = (t2 and not t4) or t6, b0 = (t1 and not t2) or (t3 and not t4) or
+* (t5 and not t6) or t7. Five inverters, five NAND2 and one NAND4, all L = 1 um: speed is not a
+* goal. Designed in VibeSPICE (project layout-project, block encoder).
+*
+* Layout: the 11 gates in one row, sharing their rails, in the order N12 I2 N24 N34 I4 Nb0 Ib2
+* N56 I6 Nb1 I7, so that t1 to t7 arrive in order; the nets between gates run on 4 tracks
+* below the row, the inputs leave at the bottom and the bits at the top. Reference for LVS
+* (scripts/flow.py lvs encoder).
+.subckt encoder t1 t2 t3 t4 t5 t6 t7 b0 b1 b2 vdd vss
+XM1 T2_B t2 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM2 T2_B t2 vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM3 T4_B t4 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM4 T4_B t4 vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM5 T6_B t6 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM6 T6_B t6 vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM7 T7_B t7 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM8 T7_B t7 vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM9 b2 T4_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM10 b2 T4_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM11 N12 t1 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM12 N12 T2_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM13 N12 t1 XM13_XM14 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM14 XM13_XM14 T2_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM15 N34 t3 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM16 N34 T4_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM17 N34 t3 XM17_XM18 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM18 XM17_XM18 T4_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM19 N56 t5 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM20 N56 T6_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM21 N56 t5 XM21_XM22 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM22 XM21_XM22 T6_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM23 N24 t2 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM24 N24 T4_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM25 N24 t2 XM25_XM26 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM26 XM25_XM26 T4_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM27 b1 N24 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM28 b1 T6_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM29 b1 N24 XM29_XM30 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM30 XM29_XM30 T6_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM31 b0 N12 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM32 b0 N34 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM33 b0 N56 vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM34 b0 T7_B vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XM35 b0 N12 XM35_XM36 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM36 XM35_XM36 N34 XM36_XM37 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM37 XM36_XM37 N56 XM37_XM38 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XM38 XM37_XM38 T7_B vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+.ends encoder

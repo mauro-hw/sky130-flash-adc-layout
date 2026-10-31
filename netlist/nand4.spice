@@ -1,0 +1,15 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The encoder's four-input NAND, drawn like a standard cell: PMOS vdd | y | vdd | y | vdd, NMOS
+* in series y | m1 | m2 | m3 | vss, input a next to y. Reference for LVS (scripts/flow.py lvs nand4).
+.subckt nand4 a b c d y vdd vss
+XP1 y a vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XP2 y b vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XP3 y c vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XP4 y d vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XN1 y a m1 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XN2 m1 b m2 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XN3 m2 c m3 vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XN4 m3 d vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+.ends nand4

@@ -7,7 +7,8 @@ the pre-layout and post-layout performance in three process corners.
 **Status:** laid out and verified. The top cell, [mag/comparator.mag](mag/comparator.mag)
 ([gds/comparator.gds](gds/comparator.gds)), passes DRC and LVS against the schematic, and its
 extracted netlist behaves as the schematic does in DC; the layout costs it 22 to 41 % of its
-speed. The ADC's reference ladder ([mag/ladder.mag](mag/ladder.mag)) also passes DRC and LVS.
+speed. The ADC's reference ladder ([mag/ladder.mag](mag/ladder.mag)) and its encoder
+([mag/encoder.mag](mag/encoder.mag)) also pass DRC and LVS.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
@@ -134,6 +135,11 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   serpentine, two per step, so `vss`, the seven taps and `top` all leave on one edge, and a dummy
   strip at each end. For 3 bits its matching hardly matters: 200 ladders with the PDK's
   mismatch give at worst 0.011 LSB of DNL and 0.018 LSB of INL.
+- **Encoder (`encoder`), the ADC's:** 11 gates (inverters, NAND2, NAND4; 38 transistors,
+  L = 1 µm) drawn like standard cells, PMOS over NMOS with the rings' sides as the `vdd` and
+  `vss` rails, side by side in one row of 37 × 10.5 µm. The parallel PMOS of each NAND share
+  the output column (`vdd | y | vdd`); the nets between gates run on 4 tracks under the row.
+  The extracted encoder gives the 8 codes right in the three corners.
 - **Top cell (`comparator`):** about 34 × 61 µm, the resistor's height. `bias` and `stage2`
   side by side on top, so that `out` stays short and away from the inputs; `pair` below them
   and `mirror` at the bottom, so that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on

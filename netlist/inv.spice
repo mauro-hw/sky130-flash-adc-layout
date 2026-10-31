@@ -1,0 +1,10 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The encoder's inverter, drawn like a standard cell: the PMOS (high Vt, 1 x 1 um) above the
+* NMOS (0.65 x 1 um), each in its generated ring, the PMOS ring's top as the vdd rail and the
+* NMOS ring's bottom as the vss rail. Reference for LVS (scripts/flow.py lvs inv).
+.subckt inv a y vdd vss
+XP y a vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XN y a vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+.ends inv

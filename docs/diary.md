@@ -425,3 +425,51 @@ go at the end of each day.
 ### Result
 - `python3 scripts/flow.py all ladder`: no DRC errors, LVS matches `netlist/ladder.spice`
   uniquely, extraction and GDS done.
+
+## 2026-10-31 · The encoder
+
+### Digital layout: compact and orderly, nothing to match
+- The encoder turns the 7 comparator outputs (a thermometer code) into 3 bits with 11 gates:
+  5 inverters, 5 NAND2 and 1 NAND4, 38 transistors, all L = 1 µm. A gate either switches or
+  it does not, so nothing has to match; the layout only has to be compact and regular.
+- Each gate is drawn like a standard cell: the PMOS on top, in its n-well and ring, whose top
+  side is the `vdd` rail; the NMOS below, whose ring's bottom side is the `vss` rail. Each input
+  is a metal1 line from the NMOS gate's contact to the PMOS gate's. Poly cannot go straight
+  through: it would cross the rings' diffusion and make a transistor there.
+
+### Series and parallel transistors share diffusion differently
+- The NMOS of a NAND are in series: they share their middle column, `y | mid | vss`, which
+  connects to nothing else.
+- The PMOS are in parallel: either `vdd | y | vdd` or `y | vdd | y`. I chose the first, as for
+  XM6: `y` on one shared column has half the junction and one pin. Its cost is a short jog in
+  metal2 to the NMOS's `y`, at the end of the series stack. The NAND4: `vdd | y | vdd | y | vdd`.
+
+### Gates side by side
+- Each gate's ring overlaps its neighbour's along their shared side, so the n-wells and the
+  rails join into one, as in a row of standard cells.
+- **Symptom:** in the first draft, 40 × "mcon.spacing < 0.19um" and 160 × "Metal1 spacing" at
+  the rails, where two gates meet.
+- **Cause:** with 100 % coverage, the contacts on the generator's ring ran to 0.085 µm from
+  each corner, so two neighbours' were 0.17 µm apart; and each ring's metal1 stopped 0.05 µm
+  from its neighbour's.
+- **Fix:** rings generated with 80 % contact coverage (`viagt 80`, `viagb 80`), and one
+  continuous metal1 strip along each rail.
+
+### The order of the row
+- N12 I2 N24 N34 I4 Nb0 Ib2 N56 I6 Nb1 I7: the inputs `t1` to `t7` arrive in order, from the
+  7 comparators side by side, and each pair's gates sit together. The nets between gates take
+  4 tracks under the row; the two longest are `N24` and `T7_B`.
+- The inputs leave at the bottom, towards the comparators, and the bits at the top.
+
+### A missing gate that only LVS saw
+- **Symptom:** the encoder had no DRC errors, but LVS failed on its pins: `b0` had no pin.
+- **Cause:** I ran the encoder's block before the NAND4 existed. `getcell nand4` placed nothing
+  and the rest of the block carried on, so all its wiring was there, waiting for a gate.
+- **Fix:** `getcell nand4` at its place, then `save encoder`.
+- **Lesson:** DRC checks that what is drawn can be built; only LVS checks that it is the
+  circuit.
+
+### Result
+- `python3 scripts/flow.py all` for `inv`, `nand2`, `nand4` and `encoder`: no DRC errors, LVS
+  matches each reference uniquely. The extracted encoder gives the 8 codes right in tt, ss and
+  ff.

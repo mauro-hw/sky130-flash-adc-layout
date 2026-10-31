@@ -1,0 +1,59 @@
+magic
+tech sky130A
+magscale 1 2
+timestamp 1793442017
+<< metal1 >>
+rect 346 1308 398 1314
+rect 346 1250 398 1256
+rect 346 1086 398 1092
+rect 88 1042 140 1048
+rect 346 1028 398 1034
+rect 88 984 140 990
+rect 213 325 273 869
+rect 88 248 140 254
+rect 88 190 140 196
+rect 346 216 398 222
+rect 346 158 398 164
+rect 346 26 398 32
+rect 346 -32 398 -26
+<< via1 >>
+rect 346 1256 398 1308
+rect 88 990 140 1042
+rect 346 1034 398 1086
+rect 88 196 140 248
+rect 346 164 398 216
+rect 346 -26 398 26
+<< metal2 >>
+rect 346 1308 398 1314
+rect 346 1250 398 1256
+rect 358 1092 386 1250
+rect 346 1086 398 1092
+rect 88 1042 140 1048
+rect 346 1028 398 1034
+rect 88 984 140 990
+rect 100 254 128 984
+rect 88 248 140 254
+rect 88 190 140 196
+rect 346 216 398 222
+rect 346 158 398 164
+rect 358 32 386 158
+rect 346 26 398 32
+rect 346 -32 398 -26
+use sky130_fd_pr__nfet_01v8_APJKA6  XN
+timestamp 1793442008
+transform 1 0 243 0 1 222
+box -296 -275 296 275
+use sky130_fd_pr__pfet_01v8_hvt_SLA84M  XP
+timestamp 1793442017
+transform 1 0 243 0 1 1016
+box -296 -319 296 319
+<< labels >>
+flabel metal1 234 580 252 600 0 FreeSans 3 0 0 0 a
+port 1 nsew
+flabel metal2 106 640 122 660 0 FreeSans 3 0 0 0 y
+port 2 nsew
+flabel via1 364 1274 380 1290 0 FreeSans 3 0 0 0 vdd
+port 3 nsew
+flabel via1 364 -8 380 8 0 FreeSans 3 0 0 0 vss
+port 4 nsew
+<< end >>

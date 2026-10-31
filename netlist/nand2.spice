@@ -1,0 +1,12 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The encoder's two-input NAND, drawn like a standard cell. The PMOS in parallel share their
+* output column, vdd | y | vdd, so y has one column; the NMOS in series share their middle
+* column, y | mid | vss. Input a is the NMOS next to y. Reference for LVS (scripts/flow.py lvs nand2).
+.subckt nand2 a b y vdd vss
+XP1 y a vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XP2 y b vdd vdd sky130_fd_pr__pfet_01v8_hvt w=1 l=1
+XN1 y a mid vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+XN2 mid b vss vss sky130_fd_pr__nfet_01v8 w=0.65 l=1
+.ends nand2
