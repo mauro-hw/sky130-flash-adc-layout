@@ -11,6 +11,8 @@ the reference ladder and the encoder, 90 × 215 µm. Both pass DRC and LVS again
 After layout the comparator behaves as designed in DC, at 22 to 41 % of its speed, and the
 ADC's transfer curve has no missing codes and its thresholds in place in every corner.
 
+![The 3-bit flash ADC: the reference ladder, seven comparators and the encoder](docs/images/adc.png)
+
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
 and simulates analog circuits, with Claude Code (Anthropic) as its agent, and reviewed with
@@ -134,6 +136,8 @@ Every problem met on the way, its cause and its fix: [docs/diary.md](docs/diary.
 
 ## Layout
 
+![One comparator: the bias resistor, the bias mirror and the second stage, the input pair and the current mirror](docs/images/comparator.png)
+
 Each block is a cell of `mag/` with its own LVS reference in `netlist/`; why each one is drawn
 as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
 
@@ -189,6 +193,7 @@ python3 scripts/flow.py all comparator    # DRC, LVS against netlist/comparator.
 python3 scripts/sim.py build/comparator_pex.spice    # the same tables, after layout
 python3 scripts/flow.py all adc           # the whole ADC, against netlist/adc.spice
 python3 scripts/adc_sim.py build/adc_pex.spice       # its transfer curve, after layout
+python3 scripts/render.py adc             # docs/images/adc.png (needs Pillow)
 ```
 
 | Step | Tool |
