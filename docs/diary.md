@@ -473,3 +473,26 @@ go at the end of each day.
 - `python3 scripts/flow.py all` for `inv`, `nand2`, `nand4` and `encoder`: no DRC errors, LVS
   matches each reference uniquely. The extracted encoder gives the 8 codes right in tt, ss and
   ff.
+
+## 2026-10-31 · Folding the bias resistor
+
+### Half the comparator was empty
+- **What I saw:** the comparator was 34 × 61 µm, and the 4 strips of 55 µm of the bias resistor
+  set its height; the rest of it (bias, pair, mirror) was only 27 µm tall, so a pocket of
+  29 × 34 µm under the mirror held nothing.
+- **What I did:** a resistor's value depends on its total length, not on how many pieces it is
+  cut into, so the same 220 µm can be drawn as more, shorter strips in series: wider and
+  shorter. Ten strips of 22 µm make a block of 9.5 × 28.4 µm, as tall as the rest.
+- **The cost:** each strip adds the resistance of its two contacts, so 10 strips measure 0.3 %
+  more than 4 (1.267 MΩ instead of 1.263 MΩ in tt). For this resistor 5 % moves the offset by
+  0.001 mV.
+- **LVS:** Netgen adds the lengths of resistors in series, so the 10 strips of 22 µm match the
+  netlist's 4 of 55 µm and the netlist stays as designed.
+- **Its two ends:** with an even number of strips both stay on one edge. The resistor goes in
+  rotated 180°, so that `VBIAS`, the 1.26 MΩ node, is the end next to the bias mirror, and
+  `vss`, of low impedance, the far one.
+- **Result:** the comparator went from 34 × 61 µm to 39.0 × 28.4 µm, 47 % less area, with no
+  empty pocket. I first tried 8 strips (37.4 × 33.9 µm), and once I saw it, 10 fitted better.
+- **After layout:** the same `sim.py` on the folded comparator's extraction gives the same delays
+  (254 / 149 ns in tt), the same offset without mismatch, 0.3 % less current and σ = 4.91 mV, a
+  new random draw because the extracted netlist now has ten strips.

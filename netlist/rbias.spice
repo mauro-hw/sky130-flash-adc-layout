@@ -1,12 +1,15 @@
 * SPDX-License-Identifier: Apache-2.0
 * Copyright 2026 Mauro Rodriguez Blasco
 *
-* Fifth layout exercise: the comparator's bias resistor, four high-resistivity poly strips
-* 0.35 x 55 um in series, 1.26 Mohm from vbias to vss, side by side in a p+ guard ring. They
-* are joined as a serpentine in metal1 (tops of strips 1-2, bottoms of 2-3, tops of 3-4), so
-* every link is short and both ends, vbias on strip 1 and vss on strip 4, leave on the same
-* side. Its value sets every current but not the offset (0.001 mV for 5 %), so it needs no
-* dummies. Guard ring (the body): vss. Reference for LVS (scripts/flow.py lvs rbias).
+* Fifth layout exercise: the comparator's bias resistor, four high-resistivity poly segments
+* 0.35 x 55 um in series, 1.26 Mohm from vbias to vss. The layout draws them as ten strips of
+* 22 um side by side in a p+ guard ring, so that the resistor is as tall as the rest of the
+* comparator rather than twice as tall; Netgen adds the lengths of resistors in series, so they
+* match these four (their extra contacts add 0.3 % to the value). They are joined as a
+* serpentine in metal1, so every link is short and both ends, vbias on strip 1 and vss on
+* strip 10, leave on the same side. Its value sets every current but not the offset (0.001 mV
+* for 5 %), so it needs no dummies. Guard ring (the body): vss. Reference for LVS
+* (scripts/flow.py lvs rbias).
 .subckt rbias vbias vss
 XR1 vbias r1_r2 vss sky130_fd_pr__res_xhigh_po_0p35 l=55
 XR2 r1_r2 r2_r3 vss sky130_fd_pr__res_xhigh_po_0p35 l=55

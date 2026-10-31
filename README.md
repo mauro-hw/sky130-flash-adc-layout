@@ -79,16 +79,16 @@ capacitances.
 
 | | tt, 25 °C, 1.80 V | ss, 100 °C, 1.60 V | ff, −40 °C, 1.95 V |
 |---|---|---|---|
-| Offset σ, with mismatch | 5.23 mV | 5.22 mV | 5.22 mV |
-| Offset mean; min / max | +0.44; −14.5 / +11.2 mV | +0.43; −14.3 / +11.1 mV | +0.46; −14.6 / +11.2 mV |
-| Offset without mismatch, worst tap | −0.13 mV | −0.19 mV | +0.10 mV |
-| Supply current, largest | 4.55 µA | 4.31 µA | 4.63 µA |
+| Offset σ, with mismatch | 4.91 mV | 4.90 mV | 4.91 mV |
+| Offset mean; min / max | −0.21; −11.1 / +15.6 mV | −0.26; −11.1 / +15.3 mV | −0.18; −11.1 / +15.7 mV |
+| Offset without mismatch, worst tap | −0.13 mV | −0.19 mV | +0.11 mV |
+| Supply current, largest | 4.54 µA | 4.29 µA | 4.62 µA |
 | Output high / low | 1.800 V / 39 mV | 1.600 V / 75 mV | 1.950 V / 21 mV |
-| Delay, `out` rising / falling | 254 / 148 ns | 268 / 172 ns | 237 / 131 ns |
+| Delay, `out` rising / falling | 254 / 149 ns | 268 / 172 ns | 237 / 131 ns |
 
-- **In DC the layout changes nothing:** the offset without mismatch, the current and the
-  output levels are identical, and σ stays within the uncertainty of its estimate, far below
-  8 mV.
+- **In DC the layout changes practically nothing:** the offset without mismatch and the output
+  levels are the same, the current is 0.3 % lower (the folded resistor's extra contacts), and σ
+  stays within the uncertainty of its estimate, far below 8 mV.
 - **It costs speed:** 22 to 26 % with `out` rising and 38 to 41 % falling. In tt the drawn
   junctions add 5 ns; the rest is the wiring, mostly on `OUT1`, which carries 11.5 fF next to
   the 40 fF of XM6's gate. The ADC has no speed requirement yet.
@@ -129,8 +129,10 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   Its errors reach the input divided by the first stage's gain, so it needs no centroid.
 - **Bias mirror (`bias`):** one row, D 8 5 5 7 7 5 5 8 D: `out` on one shared column, the
   dummies on VBIAS.
-- **Bias resistor (`rbias`):** four strips in series as a serpentine, without dummies: its
-  value sets the currents, not the offset.
+- **Bias resistor (`rbias`):** the netlist's four segments of 55 µm drawn as ten strips of 22 µm
+  in series, as a serpentine, so that it is as tall as the rest of the comparator (Netgen adds
+  the lengths of resistors in series; the extra contacts add 0.3 % to its value). No dummies:
+  its value sets the currents, not the offset.
 - **Reference ladder (`ladder`), the ADC's:** 16 strips `res_high_po_1p41` in series as a
   serpentine, two per step, so `vss`, the seven taps and `top` all leave on one edge, and a dummy
   strip at each end. For 3 bits its matching hardly matters: 200 ladders with the PDK's
@@ -140,10 +142,11 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   `vss` rails, side by side in one row of 37 × 10.5 µm. The parallel PMOS of each NAND share
   the output column (`vdd | y | vdd`); the nets between gates run on 4 tracks under the row.
   The extracted encoder gives the 8 codes right in the three corners.
-- **Top cell (`comparator`):** about 34 × 61 µm, the resistor's height. `bias` and `stage2`
-  side by side on top, so that `out` stays short and away from the inputs; `pair` below them
-  and `mirror` at the bottom, so that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on
-  the left, upside down, so that `VBIAS` goes straight to it.
+- **Top cell (`comparator`):** 39.0 × 28.4 µm. `bias` and `stage2` side by side on top, so that
+  `out` stays short and away from the inputs; `pair` below them and `mirror` at the bottom, so
+  that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on the left, rotated so that its
+  `VBIAS` end is next to the bias mirror. Folding the resistor into ten strips took the cell
+  from 34 × 61 µm to this, 47 % less area.
 - **Routing, as extracted:**
   - `OUT1` and `XM2_drain`: short, with nearly equal couplings to the inputs (`inp`–`OUT1`
     1.76 fF, `inn`–`XM2_drain` 1.73 fF).
