@@ -496,3 +496,34 @@ go at the end of each day.
 - **After layout:** the same `sim.py` on the folded comparator's extraction gives the same delays
   (254 / 149 ns in tt), the same offset without mismatch, 0.3 % less current and σ = 4.91 mV, a
   new random draw because the extracted netlist now has ten strips.
+
+## 2026-10-31 · The ADC
+
+### The floorplan: a column, and a ladder as tall as it
+- Area is not a requirement, so I chose the classic flash ADC floorplan: the seven comparators
+  in one column, in the ladder's order, the ladder on one side and the encoder on the other.
+- Placed without wiring, the column was 206 µm tall and the compact ladder 53 µm, its taps
+  every 3.8 µm against comparators every 29.4 µm: the taps would have fanned out up to 180 µm.
+- So the ladder became a column of 8 steps, one beside each comparator. Each step is the
+  netlist's 2 strips of 47 µm drawn as 4 of 23.5 µm (Netgen adds the lengths again). Four, an
+  even number, keep both ends of a step on one edge, and the steps lie down so that edge faces
+  the comparators. Each tap now goes straight onto its comparator's `inn`.
+
+### Wiring without metal3
+- The comparator's `inn` and `inp` are metal1 buses under the pair, and its output and `vdd`
+  are metal1 buses too. Each extends out of the comparator without crossing anything: `inn` to
+  the left, onto the ladder's tap; `inp`, the output and `vdd` to the right, onto metal2 spines.
+- A `vss` spine runs on the left, joined to each comparator's `vss` bus and the ladder's bottom.
+
+### Two traps from before, again
+- A label on a subcell's paint does not make a port of the cell above: the ladder's `vss` and
+  `top` needed a patch of the ladder's own metal1 under them.
+- The rings of the ladder's steps are the substrate, and nothing joined them to `vss`; the old
+  ladder's dummies used to. A short bridge of local interconnect at the first step does it.
+
+### Result
+- `python3 scripts/flow.py all adc`: no DRC errors, LVS matches `netlist/adc.spice` (which
+  includes the blocks' netlists) uniquely; about 300 devices.
+- `python3 scripts/adc_sim.py build/adc_pex.spice`: the extracted ADC, swept from 0 to 0.9 V in
+  1 mV steps, has no missing codes and its 7 thresholds at 113 to 788 mV in tt, ss and ff, the
+  same as the schematic down to the sweep's resolution (0.009 LSB).

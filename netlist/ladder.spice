@@ -6,10 +6,11 @@
 * poly strips 1.41 x 47 um in series (11.06 kohm each in tt, 177 kohm in all, 5.1 uA). Designed
 * in VibeSPICE (project layout-project, block ladder).
 *
-* Layout: one block of 18 strips side by side in a p+ guard ring, joined as a serpentine (the
-* middle of each step at the top edge), so vss, the 7 taps and top all leave on the bottom
-* edge. The two outer strips are dummies with both ends on vss. Matching hardly matters for 3
-* bits: with the PDK's mismatch, 200 ladders give at worst 0.011 LSB of DNL and 0.018 of INL.
+* Layout: a column of 8 steps, one beside each comparator, so that each tap meets its
+* comparator's inn: each step is 4 strips of 23.5 um in series (Netgen adds the lengths of
+* resistors in series, so they match the 2 of 47 um below), lying down with both of its ends
+* facing the comparators. No dummies: matching hardly matters for 3 bits (with the PDK's
+* mismatch, 200 ladders give at worst 0.011 LSB of DNL and 0.018 of INL).
 * Reference for LVS (scripts/flow.py lvs ladder).
 .subckt ladder top tap1 tap2 tap3 tap4 tap5 tap6 tap7 vss
 xr1 tap1 xr1_xr2 vss sky130_fd_pr__res_high_po_1p41 l=47
@@ -28,6 +29,4 @@ xr13 tap7 xr13_xr14 vss sky130_fd_pr__res_high_po_1p41 l=47
 xr14 xr13_xr14 tap6 vss sky130_fd_pr__res_high_po_1p41 l=47
 xr15 top xr15_xr16 vss sky130_fd_pr__res_high_po_1p41 l=47
 xr16 xr15_xr16 tap7 vss sky130_fd_pr__res_high_po_1p41 l=47
-* dummies
-XRD vss vss vss sky130_fd_pr__res_high_po_1p41 l=47 mult=2 m=2
 .ends ladder

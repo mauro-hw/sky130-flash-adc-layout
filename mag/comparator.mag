@@ -1,15 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1793463020
-<< checkpaint >>
-rect -2255 4968 2161 4986
-rect -2255 4846 2846 4968
-rect -2255 4441 5321 4846
-rect -2255 4145 7577 4441
-rect -2255 -2904 8074 4145
-rect -2255 -2920 7889 -2904
-rect -2255 -3205 2161 -2920
+timestamp 1793467313
 << metal1 >>
 rect 674 3720 726 3726
 rect 674 3662 726 3668
@@ -102,7 +94,7 @@ timestamp 1793377822
 transform 1 0 1200 0 1 0
 box -53 -634 3029 2002
 use rbias  rbias_0
-timestamp 1793463011
+timestamp 1793467313
 transform -1 0 848 0 -1 3566
 box -53 -160 1843 5511
 use stage2  stage2_0

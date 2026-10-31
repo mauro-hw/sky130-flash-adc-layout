@@ -1,14 +1,15 @@
 # sky130-comparator-layout
 
-The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, from the
-schematic to the post-layout simulation: DRC, LVS, parasitic extraction and a comparison of
-the pre-layout and post-layout performance in three process corners.
+The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, and of the 3-bit
+flash ADC it is part of, from the schematic to the post-layout simulation: DRC, LVS, parasitic
+extraction and a comparison of the pre-layout and post-layout performance in three process
+corners.
 
-**Status:** laid out and verified. The top cell, [mag/comparator.mag](mag/comparator.mag)
-([gds/comparator.gds](gds/comparator.gds)), passes DRC and LVS against the schematic, and its
-extracted netlist behaves as the schematic does in DC; the layout costs it 22 to 41 % of its
-speed. The ADC's reference ladder ([mag/ladder.mag](mag/ladder.mag)) and its encoder
-([mag/encoder.mag](mag/encoder.mag)) also pass DRC and LVS.
+**Status:** laid out and verified. The comparator ([mag/comparator.mag](mag/comparator.mag))
+and the whole ADC ([mag/adc.mag](mag/adc.mag), [gds/adc.gds](gds/adc.gds)): seven comparators,
+the reference ladder and the encoder, 90 × 215 µm. Both pass DRC and LVS against the schematic.
+After layout the comparator behaves as designed in DC, at 22 to 41 % of its speed, and the
+ADC's transfer curve has no missing codes and its thresholds in place in every corner.
 
 Layout by **Mauro Rodriguez Blasco**. The circuit was designed in
 [VibeSPICE](https://github.com/mauro-hw/vibespice), an agent by the same author that designs
@@ -93,6 +94,22 @@ capacitances.
   junctions add 5 ns; the rest is the wiring, mostly on `OUT1`, which carries 11.5 fF next to
   the 40 fF of XM6's gate. The ADC has no speed requirement yet.
 
+## The ADC, after layout
+
+`python3 scripts/adc_sim.py build/adc_pex.spice`: `vin` swept from 0 to 0.9 V in 1 mV steps,
+`vref` an ideal 0.9 V, on the netlist extracted from the whole ADC, without mismatch.
+
+| | tt, 25 °C, 1.80 V | ss, 100 °C, 1.60 V | ff, −40 °C, 1.95 V |
+|---|---|---|---|
+| Missing codes | 0 | 0 | 0 |
+| Monotonic | yes | yes | yes |
+| Thresholds (mV) | 113 225 338 450 563 675 788 | 113 225 338 450 563 675 788 | 113 225 338 450 563 675 788 |
+| Largest DNL / INL | < 0.01 LSB | < 0.01 LSB | < 0.01 LSB |
+
+The same as the schematic (`python3 scripts/adc_sim.py`), down to the 1 mV of the sweep
+(0.009 LSB). With mismatch, what moves the thresholds is the comparators' offset, σ ≈ 5 mV or
+0.04 LSB, and the ladder's, 0.4 mV.
+
 ## How the design got here
 
 1. **A first version met its offset nominally but not with mismatch.** Its input pair
@@ -133,10 +150,11 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   in series, as a serpentine, so that it is as tall as the rest of the comparator (Netgen adds
   the lengths of resistors in series; the extra contacts add 0.3 % to its value). No dummies:
   its value sets the currents, not the offset.
-- **Reference ladder (`ladder`), the ADC's:** 16 strips `res_high_po_1p41` in series as a
-  serpentine, two per step, so `vss`, the seven taps and `top` all leave on one edge, and a dummy
-  strip at each end. For 3 bits its matching hardly matters: 200 ladders with the PDK's
-  mismatch give at worst 0.011 LSB of DNL and 0.018 LSB of INL.
+- **Reference ladder (`ladder`), the ADC's:** a column of 8 steps (`lstep`), one beside each
+  comparator, so that each tap meets its comparator's `inn`. Each step is the netlist's two
+  strips of 47 µm drawn as four of 23.5 µm in series, lying down with both its ends facing the
+  comparators. No dummies: for 3 bits its matching hardly matters (200 ladders with the PDK's
+  mismatch give at worst 0.011 LSB of DNL and 0.018 LSB of INL).
 - **Encoder (`encoder`), the ADC's:** 11 gates (inverters, NAND2, NAND4; 38 transistors,
   L = 1 µm) drawn like standard cells, PMOS over NMOS with the rings' sides as the `vdd` and
   `vss` rails, side by side in one row of 37 × 10.5 µm. The parallel PMOS of each NAND share
@@ -147,7 +165,12 @@ as it is, with the numbers, is in [docs/diary.md](docs/diary.md).
   that `TAIL`, `OUT1` and `XM2_drain` are short; the resistor on the left, rotated so that its
   `VBIAS` end is next to the bias mirror. Folding the resistor into ten strips took the cell
   from 34 × 61 µm to this, 47 % less area.
-- **Routing, as extracted:**
+- **ADC (`adc`):** 90 × 215 µm. The seven comparators in one column, in the ladder's order;
+  the ladder on the left, each tap straight onto its comparator's `inn` bus; on the right a
+  `vin` spine to every `inp`, each output on its own spine to the encoder's input, and a `vdd`
+  spine; a `vss` spine on the left. All in metal1 and metal2: each comparator's `inn`, `inp`,
+  output and `vdd` buses extend out of it without crossing anything.
+- **Routing inside the comparator, as extracted:**
   - `OUT1` and `XM2_drain`: short, with nearly equal couplings to the inputs (`inp`–`OUT1`
     1.76 fF, `inn`–`XM2_drain` 1.73 fF).
   - `TAIL`: one short wire from the bias mirror straight down to the pair's tail bus.
@@ -164,6 +187,8 @@ The layout cells live in `mag/`; start Magic there (`cd mag && magic`) and it re
 python3 scripts/flow.py selftest          # the tools, on a transistor Magic generates
 python3 scripts/flow.py all comparator    # DRC, LVS against netlist/comparator.spice, PEX, GDS
 python3 scripts/sim.py build/comparator_pex.spice    # the same tables, after layout
+python3 scripts/flow.py all adc           # the whole ADC, against netlist/adc.spice
+python3 scripts/adc_sim.py build/adc_pex.spice       # its transfer curve, after layout
 ```
 
 | Step | Tool |

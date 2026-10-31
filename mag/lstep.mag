@@ -1,0 +1,20 @@
+magic
+tech sky130A
+magscale 1 2
+timestamp 1793467319
+<< metal1 >>
+rect 123 5400 763 5460
+rect 879 5400 1519 5460
+rect 501 300 1141 360
+rect 224 -200 284 160
+rect 1358 -200 1418 160
+use sky130_fd_pr__res_high_po_1p41_7GBJFU  XR
+timestamp 1793467319
+transform 1 0 821 0 1 2879
+box -874 -2932 874 2932
+<< labels >>
+flabel metal1 244 -190 264 -170 0 FreeSans 3 0 0 0 a
+port 1 nsew
+flabel metal1 1378 -190 1398 -170 0 FreeSans 3 0 0 0 b
+port 2 nsew
+<< end >>

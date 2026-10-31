@@ -1,0 +1,25 @@
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The 3-bit flash ADC: the reference ladder from vref (0.9 V, from outside) to vss, seven
+* comparators, each with vin on inp and its tap on inn, and the encoder from their thermometer
+* code to b2 b1 b0. Designed in VibeSPICE (project layout-project, block adc_cmos), where the
+* reference is a behavioral model; here vref is a port.
+*
+* Layout: the comparators in one column, the ladder beside it with each step next to its
+* comparator, the encoder on the other side. Reference for LVS (scripts/flow.py lvs adc) and
+* for the transfer curve (scripts/adc_sim.py).
+.include comparator.spice
+.include ladder.spice
+.include encoder.spice
+.subckt adc vin vref b0 b1 b2 vdd vss
+Xlad vref tap1 tap2 tap3 tap4 tap5 tap6 tap7 vss ladder
+Xc1 vin tap1 t1 vdd vss comparator
+Xc2 vin tap2 t2 vdd vss comparator
+Xc3 vin tap3 t3 vdd vss comparator
+Xc4 vin tap4 t4 vdd vss comparator
+Xc5 vin tap5 t5 vdd vss comparator
+Xc6 vin tap6 t6 vdd vss comparator
+Xc7 vin tap7 t7 vdd vss comparator
+Xenc t1 t2 t3 t4 t5 t6 t7 b0 b1 b2 vdd vss encoder
+.ends adc
