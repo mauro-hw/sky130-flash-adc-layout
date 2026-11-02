@@ -44,6 +44,13 @@ It includes the layout's eight dummies, switched off.
 Every transistor is a unit repeated `m` times with `mult` equal to `m`, so that the PDK's
 mismatch averages over the fingers as it would on silicon. All the transistors are low-Vt.
 
+The ADC around it: a ladder of 16 high-resistivity poly resistors from `vref` (0.9 V) to `vss`
+sets the 7 thresholds on the comparators' `inn`, `vin` goes to every `inp`, and an encoder turns
+their thermometer code into `b2 b1 b0`. The top-level schematic, [xschem/adc.sch](xschem/adc.sch),
+matches [netlist/adc.spice](netlist/adc.spice) in Netgen (`python3 scripts/flow.py sch adc`):
+
+![The ADC's top-level schematic: the 16-resistor ladder, seven comparators and the encoder](docs/images/adc_schematic.png)
+
 ## Requirements
 
 They come from the ADC. With random comparator offsets, a Monte Carlo of the ADC (no missing
@@ -191,6 +198,7 @@ The layout cells live in `mag/`; start Magic there (`cd mag && magic`) and it re
 python3 scripts/flow.py selftest          # the tools, on a transistor Magic generates
 python3 scripts/flow.py all comparator    # DRC, LVS against netlist/comparator.spice, PEX, GDS
 python3 scripts/sim.py build/comparator_pex.spice    # the same tables, after layout
+python3 scripts/flow.py sch adc           # the schematic xschem/adc.sch against netlist/adc.spice
 python3 scripts/flow.py all adc           # the whole ADC, against netlist/adc.spice
 python3 scripts/adc_sim.py build/adc_pex.spice       # its transfer curve, after layout
 python3 scripts/render.py adc             # docs/images/adc.png (needs Pillow)

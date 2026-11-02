@@ -527,3 +527,16 @@ go at the end of each day.
 - `python3 scripts/adc_sim.py build/adc_pex.spice`: the extracted ADC, swept from 0 to 0.9 V in
   1 mV steps, has no missing codes and its 7 thresholds at 113 to 788 mV in tt, ss and ff, the
   same as the schematic down to the sweep's resolution (0.009 LSB).
+
+## 2026-11-02 · A schematic of the top level
+
+### Drawn in xschem, checked against the netlist
+- The repository only had netlists. The ADC's top level is now a schematic, `xschem/adc.sch`:
+  the 16 resistors of the ladder, the 7 comparators and the encoder, with symbols for the
+  comparator and the encoder whose pins follow their subcircuits' order.
+- xschem netlists it, and Netgen compares that netlist with `netlist/adc.spice`: they match
+  uniquely (`python3 scripts/flow.py sch adc`), so the picture is the circuit that was laid out.
+- **A trap:** exported without a window, xschem 3.1 cannot evaluate the PDK resistor symbol's
+  value text, so each resistor showed a `?`, and that version cannot hide a symbol's texts. A
+  copy of the symbol with the same terminals and netlist line, drawn with only its name, keeps
+  the picture clean.

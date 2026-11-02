@@ -9,6 +9,7 @@ The physical verification of a cell of mag/, with Magic and Netgen and the SKY13
     python3 scripts/flow.py pex CELL       netlist with parasitic capacitances, for sim.py
     python3 scripts/flow.py gds CELL       gds/CELL.gds
     python3 scripts/flow.py all CELL       all four, stopping at the first that fails
+    python3 scripts/flow.py sch CELL       xschem/CELL.sch against netlist/CELL.spice (Netgen)
     python3 scripts/flow.py selftest       the tools, on a transistor that Magic generates
 
 What it writes goes to build/ (not in git), except the GDS. The PDK comes from PDK_ROOT
@@ -110,6 +111,47 @@ def lvs(cell: str, ref: Path | None = None, cells: Path = MAG, out: Path = BUILD
     return ok
 
 
+def netgen(a: Path, b: Path, cell: str, report: Path, cwd: Path) -> str:
+    """Netgen's LVS of subcircuit cell in two netlists; its final result."""
+    if shutil.which("netgen") is None:
+        sys.exit("No netgen in PATH")
+    report.unlink(missing_ok=True)
+    done = subprocess.run(["netgen", "-batch", "lvs", f"{a} {cell}", f"{b} {cell}",
+                           str(pdk() / "libs.tech" / "netgen" / "sky130A_setup.tcl"), str(report)],
+                          cwd=cwd, capture_output=True, text=True, timeout=600, stdin=subprocess.DEVNULL)
+    if not report.is_file():
+        sys.exit("Netgen wrote no report:\n" + (done.stdout + done.stderr)[-1500:])
+    final = re.findall(r"^Final result:\s*(.+)$", report.read_text(errors="replace"), re.M)
+    return final[-1] if final else "no result"
+
+
+def schematic(cell: str, out: Path = BUILD) -> bool:
+    """The schematic xschem/CELL.sch, netlisted by xschem, against netlist/CELL.spice. The
+    blocks it draws as symbols get their subcircuits from netlist/."""
+    sch, ref = ROOT / "xschem" / f"{cell}.sch", ROOT / "netlist" / f"{cell}.spice"
+    if not sch.is_file() or not ref.is_file():
+        sys.exit(f"No xschem/{cell}.sch or netlist/{cell}.spice")
+    if shutil.which("xschem") is None:
+        sys.exit("No xschem in PATH")
+    out.mkdir(parents=True, exist_ok=True)
+    net = out / f"{cell}_sch.spice"
+    done = subprocess.run(["xschem", "--rcfile", str(ROOT / "xschem" / "xschemrc"), "-x", "-q", "-n",
+                           "-s", "-o", str(out), "-N", net.name, "--tcl", "set top_subckt 1", str(sch)],
+                          capture_output=True, text=True, timeout=300,
+                          env={**os.environ, "PDK_ROOT": str(pdk().parent)})
+    if not net.is_file():
+        sys.exit("xschem wrote no netlist:\n" + (done.stdout + done.stderr)[-1500:])
+    text = net.read_text()
+    blocks = sorted({l.split()[-1] for l in text.splitlines() if l[:1] in "xX" and len(l.split()) > 1})
+    includes = [f'.include "{ROOT / "netlist" / f"{b}.spice"}"' for b in blocks
+                if b != cell and (ROOT / "netlist" / f"{b}.spice").is_file()]
+    net.write_text("\n".join(includes) + "\n" + text)
+    result = netgen(net, ref.resolve(), cell, out / f"{cell}_sch.out", out)
+    print(f"SCH {cell}: {result} ({(out / f'{cell}_sch.out').relative_to(ROOT)})" if out == BUILD
+          else f"SCH {cell}: {result}")
+    return "match uniquely" in result and "not" not in result.lower()
+
+
 def gds(cell: str) -> Path:
     path = ROOT / "gds" / f"{cell}.gds"
     path.parent.mkdir(exist_ok=True)
@@ -168,10 +210,12 @@ def main() -> int:
         ok = selftest()
         print("Self-test passed." if ok else "Self-test FAILED.")
         return 0 if ok else 1
-    if len(args) != 2 or args[0] not in ("drc", "lvs", "pex", "gds", "all"):
+    if len(args) != 2 or args[0] not in ("drc", "lvs", "pex", "gds", "all", "sch"):
         print(__doc__.strip())
         return 2
     step, cell = args
+    if step == "sch":
+        return 0 if schematic(cell) else 1
     if not (MAG / f"{cell}.mag").is_file():
         sys.exit(f"No cell {cell} in {MAG.relative_to(ROOT)}/")
     ok = True

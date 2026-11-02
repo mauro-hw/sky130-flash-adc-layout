@@ -1,0 +1,54 @@
+v {xschem version=3.1.0 file_version=1.2
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The encoder (netlist/encoder.spice): pins in its subcircuit's order.
+}
+G {}
+K {type=primitive
+format="@name @pinlist @symname"
+template="name=x1"
+}
+V {}
+S {}
+E {}
+L 4 -60 -90 60 -90 {}
+L 4 60 -90 60 90 {}
+L 4 60 90 -60 90 {}
+L 4 -60 90 -60 -90 {}
+L 4 -80 60 -60 60 {}
+L 4 -80 40 -60 40 {}
+L 4 -80 20 -60 20 {}
+L 4 -80 0 -60 0 {}
+L 4 -80 -20 -60 -20 {}
+L 4 -80 -40 -60 -40 {}
+L 4 -80 -60 -60 -60 {}
+L 4 60 20 80 20 {}
+L 4 60 0 80 0 {}
+L 4 60 -20 80 -20 {}
+L 4 0 -90 0 -110 {}
+L 4 0 90 0 110 {}
+B 5 -82.5 57.5 -77.5 62.5 {name=t1 dir=in}
+B 5 -82.5 37.5 -77.5 42.5 {name=t2 dir=in}
+B 5 -82.5 17.5 -77.5 22.5 {name=t3 dir=in}
+B 5 -82.5 -2.5 -77.5 2.5 {name=t4 dir=in}
+B 5 -82.5 -22.5 -77.5 -17.5 {name=t5 dir=in}
+B 5 -82.5 -42.5 -77.5 -37.5 {name=t6 dir=in}
+B 5 -82.5 -62.5 -77.5 -57.5 {name=t7 dir=in}
+B 5 77.5 17.5 82.5 22.5 {name=b0 dir=out}
+B 5 77.5 -2.5 82.5 2.5 {name=b1 dir=out}
+B 5 77.5 -22.5 82.5 -17.5 {name=b2 dir=out}
+B 5 -2.5 -112.5 2.5 -107.5 {name=vdd dir=inout}
+B 5 -2.5 107.5 2.5 112.5 {name=vss dir=inout}
+T {t1} -55 52 0 0 0.18 0.18 {}
+T {t2} -55 32 0 0 0.18 0.18 {}
+T {t3} -55 12 0 0 0.18 0.18 {}
+T {t4} -55 -8 0 0 0.18 0.18 {}
+T {t5} -55 -28 0 0 0.18 0.18 {}
+T {t6} -55 -48 0 0 0.18 0.18 {}
+T {t7} -55 -68 0 0 0.18 0.18 {}
+T {b0} 35 12 0 0 0.18 0.18 {}
+T {b1} 35 -8 0 0 0.18 0.18 {}
+T {b2} 35 -28 0 0 0.18 0.18 {}
+T {encoder} -30 -84 0 0 0.25 0.25 {}
+T {@name} -30 92 0 0 0.2 0.2 {}

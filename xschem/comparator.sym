@@ -1,0 +1,30 @@
+v {xschem version=3.1.0 file_version=1.2
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The comparator (netlist/comparator.spice): pins in its subcircuit's order.
+}
+G {}
+K {type=primitive
+format="@name @pinlist @symname"
+template="name=x1"
+}
+V {}
+S {}
+E {}
+L 4 -40 -40 -40 40 {}
+L 4 -40 -40 40 0 {}
+L 4 -40 40 40 0 {}
+L 4 -60 -20 -40 -20 {}
+L 4 -60 20 -40 20 {}
+L 4 40 0 60 0 {}
+L 4 0 -20 0 -40 {}
+L 4 0 20 0 40 {}
+B 5 -62.5 -22.5 -57.5 -17.5 {name=inp dir=in}
+B 5 -62.5 17.5 -57.5 22.5 {name=inn dir=in}
+B 5 57.5 -2.5 62.5 2.5 {name=out dir=out}
+B 5 -2.5 -42.5 2.5 -37.5 {name=vdd dir=inout}
+B 5 -2.5 37.5 2.5 42.5 {name=vss dir=inout}
+T {+} -36 -32 0 0 0.3 0.3 {}
+T {-} -35 8 0 0 0.3 0.3 {}
+T {@name} -24 -7 0 0 0.2 0.2 {}

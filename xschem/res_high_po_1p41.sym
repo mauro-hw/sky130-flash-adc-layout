@@ -1,0 +1,35 @@
+v {xschem version=3.1.0 file_version=1.2
+* SPDX-License-Identifier: Apache-2.0
+* Copyright 2026 Mauro Rodriguez Blasco
+*
+* The PDK's sky130_fd_pr__res_high_po_1p41, with the same terminals and netlist line, drawn
+* with only its name: xschem 3.1 cannot hide the PDK symbol's value texts.
+}
+G {}
+K {type=high_precision_poly_resistor
+format="@spiceprefix@name @pinlist sky130_fd_pr__@model L=@L mult=@mult m=@mult"
+template="name=R1
+L=47
+model=res_high_po_1p41
+spiceprefix=X
+mult=1"
+}
+V {}
+S {}
+E {}
+L 4 0 20 0 30 {}
+L 4 0 20 7.5 17.5 {}
+L 4 -7.5 12.5 7.5 17.5 {}
+L 4 -7.5 12.5 7.5 7.5 {}
+L 4 -7.5 2.5 7.5 7.5 {}
+L 4 -7.5 2.5 7.5 -2.5 {}
+L 4 -7.5 -7.5 7.5 -2.5 {}
+L 4 -7.5 -7.5 7.5 -12.5 {}
+L 4 -7.5 -17.5 7.5 -12.5 {}
+L 4 -7.5 -17.5 0 -20 {}
+L 4 0 -30 0 -20 {}
+L 4 -20 0 -10 0 {}
+B 5 -2.5 -32.5 2.5 -27.5 {name=P dir=inout}
+B 5 -2.5 27.5 2.5 32.5 {name=M dir=inout}
+B 5 -22.5 -2.5 -17.5 2.5 {name=B dir=inout}
+T {@name} 12 -8 0 0 0.2 0.2 {}

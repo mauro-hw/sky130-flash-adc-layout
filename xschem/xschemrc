@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Mauro Rodriguez Blasco
+#
+# xschem reads this file with --rcfile: SKY130's xschem setup from PDK_ROOT (~/.volare by
+# default), then this folder, for the comparator's and the encoder's symbols.
+if {![info exists env(PDK_ROOT)]} {set env(PDK_ROOT) $env(HOME)/.volare}
+source $env(PDK_ROOT)/sky130A/libs.tech/xschem/xschemrc
+append XSCHEM_LIBRARY_PATH :[file dirname [file normalize [info script]]]
+# light colours, for pictures on a white page
+set dark_colorscheme 0
