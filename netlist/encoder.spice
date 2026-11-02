@@ -4,7 +4,7 @@
 * The 3-bit flash ADC's encoder: the 7 comparator outputs t1 (lowest) to t7, a thermometer code,
 * into 3 bits: b2 = t4, b1 = (t2 and not t4) or t6, b0 = (t1 and not t2) or (t3 and not t4) or
 * (t5 and not t6) or t7. Five inverters, five NAND2 and one NAND4, all L = 1 um: speed is not a
-* goal. Designed in VibeSPICE (project layout-project, block encoder).
+* goal. Designed in VibeSPICE.
 *
 * Layout: the 11 gates in one row, sharing their rails, in the order N12 I2 N24 N34 I4 Nb0 Ib2
 * N56 I6 Nb1 I7, so that t1 to t7 arrive in order; the nets between gates run on 4 tracks

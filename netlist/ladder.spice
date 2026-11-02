@@ -4,7 +4,7 @@
 * The 3-bit flash ADC's reference ladder: from top (the 0.9 V reference) to vss in 8 equal
 * steps of 112.5 mV, whose 7 taps are the comparators' inn. Each step is two high-resistivity
 * poly strips 1.41 x 47 um in series (11.06 kohm each in tt, 177 kohm in all, 5.1 uA). Designed
-* in VibeSPICE (project layout-project, block ladder).
+* in VibeSPICE.
 *
 * Layout: a column of 8 steps, one beside each comparator, so that each tap meets its
 * comparator's inn: each step is 4 strips of 23.5 um in series (Netgen adds the lengths of

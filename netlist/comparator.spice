@@ -8,8 +8,8 @@
 *
 * Pre-layout reference for LVS. Every device is a SKY130 device; each transistor is a unit
 * repeated m times, with mult= equal to m= so that the PDK's mismatch averages over its
-* fingers. Designed in VibeSPICE (project layout-project, block comparator_cmos). The dummies
-* at the end are the layout's: switched off, they share diffusion with the node they touch.
+* fingers. Designed in VibeSPICE. The dummies at the end are the layout's: switched off, they
+* share diffusion with the node they touch.
 .subckt comparator inp inn out vdd vss
 * bias: 4 x 314.8 kohm = 1.26 Mohm
 XR1 VBIAS R1_R2 vss sky130_fd_pr__res_xhigh_po_0p35 l=55

@@ -1,4 +1,4 @@
-# sky130-comparator-layout
+# sky130-flash-adc-layout
 
 The layout of a continuous-time comparator in the SkyWater SKY130 open PDK, and of the 3-bit
 flash ADC it is part of, from the schematic to the post-layout simulation: DRC, LVS, parasitic
@@ -8,8 +8,8 @@ corners.
 **Status:** laid out and verified. The comparator ([mag/comparator.mag](mag/comparator.mag))
 and the whole ADC ([mag/adc.mag](mag/adc.mag), [gds/adc.gds](gds/adc.gds)): seven comparators,
 the reference ladder and the encoder, 90 × 215 µm. Both pass DRC and LVS against the schematic.
-After layout the comparator behaves as designed in DC, at 22 to 41 % of its speed, and the
-ADC's transfer curve has no missing codes and its thresholds in place in every corner.
+After layout the comparator behaves as designed in DC and is 22 to 41 % slower, and the ADC's
+transfer curve has no missing codes and its thresholds in place in every corner.
 
 ![The 3-bit flash ADC: the reference ladder, seven comparators and the encoder](docs/images/adc.png)
 
